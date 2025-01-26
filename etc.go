@@ -297,7 +297,7 @@ func GenerateSlice[E Integer, F Any](n E, value F) (res []F) {
 }
 
 // filters a slice based on the given function
-func Filter[E Any](s []E, f func(E) bool) (res []E) {
+func Filter[E any](s []E, f func(E) bool) (res []E) {
 	for _, e := range s {
 		if f(e) {
 			res = append(res, e)
@@ -307,7 +307,7 @@ func Filter[E Any](s []E, f func(E) bool) (res []E) {
 }
 
 // maps a slice based on the given function
-func Map[E Any, F any](s []E, f func(E) F) (res []F) {
+func Map[E any, F any](s []E, f func(E) F) (res []F) {
 	for _, e := range s {
 		res = append(res, f(e))
 	}
@@ -315,7 +315,7 @@ func Map[E Any, F any](s []E, f func(E) F) (res []F) {
 }
 
 // sorts a slice based on the given function
-func Sort[E Any](s []E, f func(E, E) bool) []E {
+func Sort[E any](s []E, f func(E, E) bool) []E {
 	sort.Slice(s, func(i, j int) bool {
 		return f(s[i], s[j])
 	})
