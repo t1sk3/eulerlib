@@ -129,6 +129,24 @@ func RemoveDuplicates[E Any](s []E) []E {
 	return res
 }
 
+func RemoveDuplicates2[E any](s []E) []E {
+	list := []E{}
+	for _, item := range s {
+		found := false
+		for _, val := range list {
+			if reflect.DeepEqual(item, val) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			list = append(list, item)
+		}
+	}
+
+	return list
+}
+
 // Removes duplicates from a slice of strings
 func RemoveDuplicateSlices(s [][]string) (res [][]string) {
 	var tmp bool
