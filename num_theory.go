@@ -121,11 +121,10 @@ func FactorialBigInt(n int64) *big.Int {
 // Calculates factorial digital sum
 func FactorialDigitSum[E Integer](n E) E {
 	s := strconv.Itoa(int(n))
-	i := -1
 	res := E(0)
 
 	for j := 0; j < len(s); j++ {
-		i, _ = strconv.Atoi(string(s[j]))
+		i, _ := strconv.Atoi(string(s[j]))
 		res += Factorial(E(i))
 	}
 	return res
@@ -142,10 +141,8 @@ func DigitSum[E Integer](n E) (res E) {
 }
 
 func DigitSumString(s string) (res int64) {
-	tmp := -1
-
 	for i := 0; i < len(s); i++ {
-		tmp, _ = strconv.Atoi(string(s[i]))
+		tmp, _ := strconv.Atoi(string(s[i]))
 		res += int64(tmp)
 	}
 	return
