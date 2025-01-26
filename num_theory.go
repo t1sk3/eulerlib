@@ -140,12 +140,9 @@ func DigitSum[E Integer](n E) (res E) {
 	return
 }
 
-func DigitSumString(s string) (res int64) {
-	for i := 0; i < len(s); i++ {
-		tmp, _ := strconv.Atoi(string(s[i]))
-		res += int64(tmp)
-	}
-	return
+func DigitSumString(s string) int64 {
+	tmp, _ := strconv.Atoi(s)
+	return DigitSum(int64(tmp))
 }
 
 // Calculates greatest common divisor for the given integers
