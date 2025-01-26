@@ -12,6 +12,6 @@ type Number interface {
 	Integer | Float
 }
 
-type Any interface {
+type AnyComparable interface {
 	Number | string | byte | bool
 }
