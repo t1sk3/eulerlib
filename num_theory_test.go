@@ -142,7 +142,7 @@ func TestJoinSlice(t *testing.T) {
 }
 
 func TestMakeIntSlice(t *testing.T) {
-	testNums := []int64{12345, 246810, 1215182124}
+	testNums := []int{12345, 246810, 1215182124}
 	want := [][]int{{1, 2, 3, 4, 5}, {2, 4, 6, 8, 1, 0}, {1, 2, 1, 5, 1, 8, 2, 1, 2, 4}}
 	for i, num := range testNums {
 		got := MakeIntSlice(num)

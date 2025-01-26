@@ -347,3 +347,9 @@ func Reduce[E Integer](f func(E, E) E, nums []E) E {
 	}
 	return res
 }
+
+// MaxInSlice: this functions returns the max value in the given slice (redirects to Max function)
+// Deprecated: Use Max instead
+func MaxInSlice[E Integer](nums []E) E {
+	return Max(nums...)
+}
