@@ -1,4 +1,4 @@
-module eulerlib
+module github.com/t1sk3/eulerlib
 
 go 1.21
 
