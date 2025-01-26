@@ -2,6 +2,7 @@ package eulerlib
 
 import (
 	"reflect"
+	"slices"
 	"sort"
 	"strconv"
 )
@@ -132,14 +133,7 @@ func RemoveDuplicates[E AnyComparable](s []E) []E {
 func RemoveDuplicates2[E any](s []E) []E {
 	list := []E{}
 	for _, item := range s {
-		found := false
-		for _, val := range list {
-			if reflect.DeepEqual(item, val) {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !SliceContainsAny(list, item) {
 			list = append(list, item)
 		}
 	}
@@ -280,8 +274,12 @@ func RangeStep[E Number](start, stop, step E) (res []E) {
 
 // Checks whether the given slice contains the given element
 func SliceContains[E AnyComparable](s []E, e E) bool {
-	for _, a := range s {
-		if a == e {
+	return slices.Contains(s, e)
+}
+
+func SliceContainsAny[E any](s []E, e E) bool {
+	for _, v := range s {
+		if reflect.DeepEqual(v, e) {
 			return true
 		}
 	}
