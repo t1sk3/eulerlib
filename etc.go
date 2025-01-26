@@ -2,6 +2,7 @@ package eulerlib
 
 import (
 	"reflect"
+	"sort"
 	"strconv"
 )
 
@@ -275,4 +276,30 @@ func GenerateSlice[E Integer, F Any](n E, value F) (res []F) {
 		res = append(res, value)
 	}
 	return
+}
+
+// filters a slice based on the given function
+func Filter[E Any](s []E, f func(E) bool) (res []E) {
+	for _, e := range s {
+		if f(e) {
+			res = append(res, e)
+		}
+	}
+	return
+}
+
+// maps a slice based on the given function
+func Map[E Any, F Any](s []E, f func(E) F) (res []F) {
+	for _, e := range s {
+		res = append(res, f(e))
+	}
+	return
+}
+
+// sorts a slice based on the given function
+func Sort[E Any](s []E, f func(E, E) bool) []E {
+	sort.Slice(s, func(i, j int) bool {
+		return f(s[i], s[j])
+	})
+	return s
 }
