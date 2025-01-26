@@ -130,10 +130,10 @@ func RemoveDuplicates[E AnyComparable](s []E) []E {
 	return res
 }
 
-func RemoveDuplicates2[E any](s []E) []E {
+func RemoveDuplicates2[E any](s []E, f func(E, E) bool) []E {
 	list := []E{}
 	for _, item := range s {
-		if !SliceContainsAny(list, item) {
+		if !SliceContainsAny(list, item, f) {
 			list = append(list, item)
 		}
 	}
@@ -277,9 +277,9 @@ func SliceContains[E AnyComparable](s []E, e E) bool {
 	return slices.Contains(s, e)
 }
 
-func SliceContainsAny[E any](s []E, e E) bool {
+func SliceContainsAny[E any](s []E, e E, f func(E, E) bool) bool {
 	for _, v := range s {
-		if reflect.DeepEqual(v, e) {
+		if f(v, e) {
 			return true
 		}
 	}
