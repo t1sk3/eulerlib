@@ -289,7 +289,7 @@ func Filter[E Any](s []E, f func(E) bool) (res []E) {
 }
 
 // maps a slice based on the given function
-func Map[E Any, F Any](s []E, f func(E) F) (res []F) {
+func Map[E Any, F any](s []E, f func(E) F) (res []F) {
 	for _, e := range s {
 		res = append(res, f(e))
 	}
