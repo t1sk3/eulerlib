@@ -66,6 +66,16 @@ func Permutations[E AnyComparable](arr []E) [][]E {
 	return res
 }
 
+// returns the amount of permutations of the given slice
+func PermutationCount[E comparable](n []E) int {
+	elements := UniqueCount(n)
+	res := Factorial(len(n))
+	for _, v := range elements {
+		res /= Factorial(v)
+	}
+	return res
+}
+
 // Returns all combinations of the elements in the given slice
 func Combinations[E AnyComparable, F Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
 	length := uint(len(set))

@@ -319,3 +319,25 @@ func Sort[E any](s []E, f func(E, E) bool) []E {
 	})
 	return s
 }
+
+// returns a slice of unique elements from the given slice
+func Unique[E comparable](s []E) []E {
+	keys := make(map[E]bool)
+	list := []E{}
+	for _, entry := range s {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
+// returns a slice of unique elements and their counts from the given slice
+func UniqueCount[E comparable](s []E) map[E]int {
+	keys := make(map[E]int)
+	for _, entry := range s {
+		keys[entry]++
+	}
+	return keys
+}
