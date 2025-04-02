@@ -48,7 +48,7 @@ func Permutations[E AnyComparable](arr []E) [][]E {
 			copy(tmp, arr)
 			res = append(res, tmp)
 		} else {
-			for i := 0; i < n; i++ {
+			for i := range n {
 				helper(arr, n-1)
 				if n%2 == 1 {
 					tmp := arr[i]
