@@ -90,6 +90,23 @@ func ListPrimes[E Integer](n E) []E {
 	return res
 }
 
+// Returns a generator that generates prime numbers
+func PrimeGenerator[E Integer](limit E) <-chan E {
+	chnl := make(chan E)
+	p := NewPrimeNumberIterator[E]()
+	go func() {
+		for {
+			next := p.Next()
+			if next > limit {
+				break
+			}
+			chnl <- next
+		}
+		close(chnl)
+	}()
+	return chnl
+}
+
 // Returns the next prime after n
 func NextPrime[E Integer](n E) E {
 	res := n + 1
