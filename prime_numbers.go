@@ -118,10 +118,18 @@ func NextPrime[E Integer](n E) E {
 
 // Sums primes between s and e
 func SumPrimes[E Integer](s E, e E) (res E) {
+	current := NextPrime(s - 1)
+	if current > e {
+		return 0
+	}
+	// if s is prime, add it to the sum
+	res = current
 	for i := s; i <= e; i++ {
-		if IsPrime(i) {
-			res += i
+		current = NextPrime(current)
+		if current > e {
+			break
 		}
+		res += current
 	}
 	return
 }

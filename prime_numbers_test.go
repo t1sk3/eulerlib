@@ -132,3 +132,38 @@ func TestPrimeGenerator(t *testing.T) {
 		lastPrime = prime
 	}
 }
+
+func TestSumPrimes(t *testing.T) {
+	limit := 2000000
+	got := SumPrimes(0, limit)
+	want := 0
+	for i := 2; i < limit; i++ {
+		if IsPrime(i) {
+			want += i
+		}
+	}
+	if got != want {
+		t.Errorf("SumPrimes(%d) == %d, want %d", limit, got, want)
+	}
+
+	got = SumPrimes(limit/2, limit)
+	want = 0
+	for i := limit / 2; i < limit; i++ {
+		if IsPrime(i) {
+			want += i
+		}
+	}
+	if got != want {
+		t.Errorf("SumPrimes(%d, %d) == %d, want %d", limit/2, limit, got, want)
+	}
+	got = SumPrimes(0, 0)
+	want = 0
+	if got != want {
+		t.Errorf("SumPrimes(0, 0) == %d, want %d", got, want)
+	}
+	got = SumPrimes(0, 1)
+	want = 0
+	if got != want {
+		t.Errorf("SumPrimes(0, 1) == %d, want %d", got, want)
+	}
+}
