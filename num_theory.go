@@ -157,15 +157,18 @@ func DigitSumString(s string) int64 {
 
 // Calculates greatest common divisor for the given integers
 func Gcd[E Integer](args ...E) E {
-outer:
-	for i := args[0]; ; i-- {
-		for _, v := range args {
-			if v%i != 0 {
-				continue outer
-			}
-		}
-		return i
+	res := args[0]
+	for _, v := range args[1:] {
+		res = gcd(res, v)
 	}
+	return res
+}
+
+func gcd[E Integer](a, b E) E {
+	if b == 0 {
+		return a
+	}
+	return gcd(b, a%b)
 }
 
 func Factorize[E Integer](n E) map[E]E {
