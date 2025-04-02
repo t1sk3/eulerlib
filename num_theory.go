@@ -165,10 +165,10 @@ func Gcd[E Integer](args ...E) E {
 }
 
 func gcd[E Integer](a, b E) E {
-	if b == 0 {
-		return a
+	for b != 0 {
+		a, b = b, a%b
 	}
-	return gcd(b, a%b)
+	return a
 }
 
 func Factorize[E Integer](n E) map[E]E {
