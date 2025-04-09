@@ -168,13 +168,16 @@ func Sum[E Number](lst []E) E {
 	return res
 }
 
-// Converts the given integer to the give base and returns it as a string, max base is 36
+// Converts the given integer to the give base and returns it as a string, max base is 62
+// It uses the following alphabet: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+// 0-9 are 0-9, 10-35 are A-Z, 36-61 are a-z
+// It returns an empty string if the base is less than 2 or greater than 62
 func DecimalToBase[E Integer, F Integer](n E, b F) (res string) {
-	alphabet := "0123456789abcdefghijklmnopqrstuvwxyz"
+	alphabet := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	n64 := int64(n)
 	b64 := int64(b)
 
-	if b64 < 2 || b64 > 36 {
+	if b64 < 2 || b64 > 62 {
 		return
 	}
 
