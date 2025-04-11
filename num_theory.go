@@ -34,7 +34,7 @@ func Divisors[E Integer](n E) []E {
 		}
 	}
 	divisors = append(divisors, E(n))
-	return divisors
+	return RemoveDuplicates(divisors)
 }
 
 // returns a slice with all permutations of the given slice
