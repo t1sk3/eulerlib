@@ -72,7 +72,7 @@ func IsPalindrome(s string) bool {
 }
 
 // returns the minimum of all given numbers
-func Min[E Number](numbers ...E) E {
+func Min[E RealNumber](numbers ...E) E {
 	if len(numbers) == 0 {
 		return E(0)
 	}
@@ -86,7 +86,7 @@ func Min[E Number](numbers ...E) E {
 }
 
 // returns the maximum of all given numbers
-func Max[E Number](numbers ...E) E {
+func Max[E RealNumber](numbers ...E) E {
 	if len(numbers) == 0 {
 		return E(0)
 	}
@@ -161,7 +161,7 @@ func RemoveDuplicateSlices(s [][]string) (res [][]string) {
 }
 
 // returns the sum of theintegers in the given slice
-func Sum[E Number](lst []E) E {
+func Sum[E RealNumber](lst []E) E {
 	res := E(0)
 	for _, element := range lst {
 		res += element
@@ -214,7 +214,7 @@ func ReverseString(s string) (res string) {
 }
 
 // Counts the occurence of a given in a slice
-func CountOccurrenceInSlice[E Number](s []E, p E) (res E) {
+func CountOccurrenceInSlice[E RealNumber](s []E, p E) (res E) {
 	for _, e := range s {
 		if e == p {
 			res++
@@ -224,7 +224,7 @@ func CountOccurrenceInSlice[E Number](s []E, p E) (res E) {
 }
 
 // Removes element from slice at index
-func RemoveFromSlice[E Number](slice []E, s int) []E {
+func RemoveFromSlice[E RealNumber](slice []E, s int) []E {
 	return append(slice[:s], slice[s+1:]...)
 }
 
@@ -255,7 +255,7 @@ func ListTotients[E Integer](n E) []E {
 }
 
 // Returns the number of digits in the given integer
-func Range[E Number](start, stop E) (res []E) {
+func Range[E RealNumber](start, stop E) (res []E) {
 	if start < stop {
 		for i := start; i < stop; i++ {
 			res = append(res, i)
@@ -270,7 +270,7 @@ func Range[E Number](start, stop E) (res []E) {
 }
 
 // Returns a slice of integers from start to stop with the given step
-func RangeStep[E Number](start, stop, step E) (res []E) {
+func RangeStep[E RealNumber](start, stop, step E) (res []E) {
 	if step == 0 {
 		return
 	}
