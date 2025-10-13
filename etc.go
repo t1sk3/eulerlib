@@ -169,10 +169,20 @@ func Sum[E Number](lst []E) E {
 	return res
 }
 
-// Converts the given integer to the give base and returns it as a string, max base is 62
-// It uses the following alphabet: 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
-// 0-9 are 0-9, 10-35 are A-Z, 36-61 are a-z
-// It returns an empty string if the base is less than 2 or greater than 62
+// DecimalToBase converts n to base b (2..62) and returns the result as a string.
+// It uses the alphabet "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+// Returns an empty string if b < 2 or b > 62.
+//
+// Example:
+// s := DecimalToBase(255, 16)
+// // s == "FF"
+//
+// Parameters:
+// n - integer to convert
+// b - target base (2..62)
+//
+// Returns:
+// string representation of n in base b
 func DecimalToBase[E Integer, F Integer](n E, b F) (res string) {
 	alphabet := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	n64 := int64(n)
