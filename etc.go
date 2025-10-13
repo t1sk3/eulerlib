@@ -1,6 +1,7 @@
 package eulerlib
 
 import (
+	"os"
 	"reflect"
 	"slices"
 	"sort"
@@ -343,4 +344,35 @@ func UniqueCount[E comparable](s []E) map[E]int {
 		keys[entry]++
 	}
 	return keys
+}
+
+// creates a file with the given name
+func CreateFile(name string) (*os.File, error) {
+	return os.Create(name)
+}
+
+// creates a file with the given name and writes the given content to it
+func CreateFileWithContent(name string, content string) error {
+	f, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(content)
+	return err
+}
+
+// reads the content of the file with the given name and returns it as a string
+func ReadFile(name string) (string, error) {
+	data, err := os.ReadFile(name)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+// checks whether a file with the given name exists
+func FileExists(name string) bool {
+	_, err := os.Stat(name)
+	return !os.IsNotExist(err)
 }
