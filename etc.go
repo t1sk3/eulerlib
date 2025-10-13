@@ -118,7 +118,7 @@ func JoinSliceString(s []string) string {
 }
 
 // removes any duplicates fm a slice
-func RemoveDuplicates[E AnyComparable](s []E) []E {
+func RemoveDuplicates[E Comparable](s []E) []E {
 	res := []E{}
 	keys := make(map[E]bool)
 
@@ -287,7 +287,7 @@ func RangeStep[E Number](start, stop, step E) (res []E) {
 }
 
 // Checks whether the given slice contains the given element
-func SliceContains[E AnyComparable](s []E, e E) bool {
+func SliceContains[E Comparable](s []E, e E) bool {
 	return slices.Contains(s, e)
 }
 
@@ -301,7 +301,7 @@ func SliceContainsAny[E any](s []E, e E, f func(E, E) bool) bool {
 }
 
 // generates a slice of length n with all elements set to the given value
-func GenerateSlice[E Integer, F AnyComparable](n E, value F) (res []F) {
+func GenerateSlice[E Integer, F Comparable](n E, value F) (res []F) {
 	for i := E(0); i < n; i++ {
 		res = append(res, value)
 	}

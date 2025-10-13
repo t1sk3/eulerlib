@@ -38,7 +38,7 @@ func Divisors[E Integer](n E) []E {
 }
 
 // returns a slice with all permutations of the given slice
-func Permutations[E AnyComparable](arr []E) [][]E {
+func Permutations[E Comparable](arr []E) [][]E {
 	var helper func([]E, int)
 	res := [][]E{}
 
@@ -77,7 +77,7 @@ func PermutationCount[E comparable](n []E) int {
 }
 
 // Returns all combinations of the elements in the given slice
-func Combinations[E AnyComparable, F Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
+func Combinations[E Comparable, F Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
 	length := uint(len(set))
 
 	if n > F(len(set)) {
