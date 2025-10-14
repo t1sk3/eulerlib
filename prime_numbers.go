@@ -74,8 +74,12 @@ func ListPrimality[E Integer](n E) []bool {
 	res[0] = false
 	res[1] = false
 
-	for _, e := range ListPrimes(n) {
-		res[E(e)] = true
+	for i := E(2); i*i <= n; i++ {
+		if res[i] {
+			for j := i * i; j <= n; j += i {
+				res[j] = false
+			}
+		}
 	}
 	return res
 }
@@ -94,12 +98,8 @@ func PrimeGenerator[E Integer](limit E) <-chan E {
 	chnl := make(chan E)
 	p := NewPrimeNumberIterator[E]()
 	go func() {
-		for {
-			next := p.Next()
-			if next > limit {
-				break
-			}
-			chnl <- next
+		for p.Next() <= limit {
+			chnl <- p.Current()
 		}
 		close(chnl)
 	}()
