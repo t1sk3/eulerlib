@@ -8,8 +8,12 @@ type PrimeNumberIterator[E Integer] struct {
 	current E
 }
 
-func (p *PrimeNumberIterator[E]) Next() E {
+func (p *PrimeNumberIterator[E]) Proceed() {
 	p.current = NextPrime(p.current)
+}
+
+func (p *PrimeNumberIterator[E]) Next() E {
+	p.Proceed()
 	return p.current
 }
 
@@ -40,7 +44,13 @@ func IsPrime[E Integer](p E) bool {
 		return false
 	}
 	end++
-	for i := E(2); i < end; i++ {
+	if p%2 == 0 && p != 2 {
+		return false
+	}
+	if p < 2 {
+		return false
+	}
+	for i := E(3); i < end; i += 2 {
 		if p%i == 0 {
 			return false
 		}
@@ -64,28 +74,21 @@ func ListPrimality[E Integer](n E) []bool {
 	res[0] = false
 	res[1] = false
 
-	for i, e := range res {
-		if e {
-			if E(i) <= n/2 {
-				for j := E(i * 2); j <= n; j += E(i) {
-					res[j] = false
-				}
-			}
-		}
-		if E(i) > n/2 {
-			break
-		}
+	for _, e := range ListPrimes(n) {
+		res[E(e)] = true
 	}
 	return res
 }
 
 // Lists all primes up to n
 func ListPrimes[E Integer](n E) []E {
+	if n == 2 {
+		return []E{2}
+	}
 	res := []E{}
-	for i, e := range ListPrimality(n) {
-		if e {
-			res = append(res, E(i))
-		}
+	p := NewPrimeNumberIterator[E]()
+	for p.Next() <= n {
+		res = append(res, p.Current())
 	}
 	return res
 }
@@ -109,9 +112,20 @@ func PrimeGenerator[E Integer](limit E) <-chan E {
 
 // Returns the next prime after n
 func NextPrime[E Integer](n E) E {
-	res := n + 1
+	if n < 2 {
+		return 2
+	}
+	if n == 2 {
+		return 3
+	}
+	var res E
+	if n%2 == 0 {
+		res = n + 1
+	} else {
+		res = n + 2
+	}
 	for !IsPrime(res) {
-		res++
+		res += 2
 	}
 	return res
 }
