@@ -82,9 +82,6 @@ func ListPrimality[E Integer](n E) []bool {
 
 // Lists all primes up to n
 func ListPrimes[E Integer](n E) []E {
-	if n == 2 {
-		return []E{2}
-	}
 	res := []E{}
 	p := NewPrimeNumberIterator[E]()
 	for p.Next() <= n {
