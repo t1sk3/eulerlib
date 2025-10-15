@@ -220,3 +220,34 @@ func TestTotient(t *testing.T) {
 		}
 	}
 }
+
+func TestCombinations(t *testing.T) {
+	testNums := [][]int64{{1, 2, 3}, {4, 5, 6}, {7, 8, 9, 10}}
+	want := [][][]int64{
+		// bitmask order: 1..7 -> [1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]
+		{{1}, {2}, {1, 2}, {3}, {1, 3}, {2, 3}, {1, 2, 3}},
+		// bitmask order for 3 elements
+		{{4}, {5}, {4, 5}, {6}, {4, 6}, {5, 6}, {4, 5, 6}},
+		// bitmask order for 4 elements: 1..15
+		{{7}, {8}, {7, 8}, {9}, {7, 9}, {8, 9}, {7, 8, 9}, {10}, {7, 10}, {8, 10}, {7, 8, 10}, {9, 10}, {7, 9, 10}, {8, 9, 10}, {7, 8, 9, 10}},
+	}
+	for i, num := range testNums {
+		// pass 0 to indicate "any length" (function filters by ones count when n>0)
+		got := Combinations(num, 0)
+		if len(got) != len(want[i]) {
+			t.Errorf("Combinations(%d) == %d, want %d", num, got, want[i])
+			continue
+		}
+		for j := range got {
+			if len(got[j]) != len(want[i][j]) {
+				t.Errorf("Combinations(%d)[%d] == %d, want %d", num, j, got[j], want[i][j])
+				continue
+			}
+			for k := range got[j] {
+				if got[j][k] != want[i][j][k] {
+					t.Errorf("Combinations(%d)[%d][%d] == %d, want %d", num, j, k, got[j][k], want[i][j][k])
+				}
+			}
+		}
+	}
+}

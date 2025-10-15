@@ -77,7 +77,7 @@ func PermutationCount[E comparable](n []E) int {
 }
 
 // Returns all combinations of the elements in the given slice
-func Combinations[E Comparable, F Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
+func Combinations[E any, F Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
 	length := uint(len(set))
 
 	if n > F(len(set)) {
@@ -93,7 +93,7 @@ func Combinations[E Comparable, F Integer](set []E, n F) (subsets [][]E) { // ht
 
 		var subset []E
 
-		for object := uint(0); object < length; object++ {
+		for object := range length {
 			// checks if object is contained in subset
 			// by checking if bit 'object' is set in subsetBits
 			if (subsetBits>>object)&1 == 1 {
