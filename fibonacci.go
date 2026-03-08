@@ -28,12 +28,22 @@ func Fibonacci(limit int64) (res []int64) {
 	return
 }
 
+// FibonacciSingle returns the nth fibonacci number.
+// The result is the same as the last element of Fibonacci(n)
+// but calculated while using less memory
 func FibonacciSingle[E Integer](n E) int64 {
 	if n < 2 {
 		return int64(n)
 	}
-	nf := float64(n)
-	return int64((math.Pow((1+math.Sqrt(5))/2, nf) - math.Pow((1-math.Sqrt(5))/2, nf)) / math.Sqrt(5))
+	it := E(2)
+	fibs := []E{1, 1}
+	for it < n {
+		tmp := fibs[0]
+		fibs = fibs[1:]
+		fibs = append(fibs, fibs[0]+tmp)
+		it++
+	}
+	return int64(fibs[1])
 }
 
 // Generates the Fibonaccisequence in Big Integer

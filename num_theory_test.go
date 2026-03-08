@@ -203,7 +203,7 @@ func TestReduce(t *testing.T) {
 	sumfunc := func(a, b int64) int64 { return a + b }
 	want := []int64{6, 9, 12, 35, 18, 21, 130, 27, 30}
 	for i, num := range testNums {
-		got := Reduce(sumfunc, num)
+		got := Reduce(num, sumfunc)
 		if got != want[i] {
 			t.Errorf("Reduce(%d) == %d, want %d", num, got, want[i])
 		}

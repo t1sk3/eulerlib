@@ -182,12 +182,12 @@ func Factorize[E Integer](n E) map[E]E {
 	return factors
 }
 
-func FactorizeBigInt(n *big.Int) map[int64]int64 {
-	factors := make(map[int64]int64)
+func FactorizeBigInt(n *big.Int) map[*big.Int]*big.Int {
+	factors := make(map[*big.Int]*big.Int)
 	i := big.NewInt(2)
 	for i.Cmp(n) == -1 || i.Cmp(n) == 0 {
 		for n.Mod(n, i).Cmp(big.NewInt(0)) == 0 {
-			factors[i.Int64()]++
+			factors[i].Add(i, big.NewInt(1))
 			n.Div(n, i)
 		}
 		i.Add(i, big.NewInt(1))
@@ -326,7 +326,7 @@ func IsSquare[E Integer](n E) bool {
 	return s*s == n
 }
 
-func IsInteger[E Float](n E) bool {
+func FloatIsInteger[E Float](n E) bool {
 	return E(math.Floor(float64(n))) == n
 }
 
@@ -347,7 +347,7 @@ func Lcm[E Integer](nums ...E) E {
 }
 
 // this function reduces a slice of integers using the given function
-func Reduce[E Integer](f func(E, E) E, nums []E) E {
+func Reduce[E Integer](nums []E, f func(E, E) E) E {
 	res := nums[0]
 	for _, v := range nums[1:] {
 		res = f(res, v)

@@ -6,6 +6,7 @@ import (
 	"slices"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // Checks whether the given integer is pandigital in base 10
@@ -88,7 +89,7 @@ func Min[E RealNumber](numbers ...E) E {
 // returns the maximum of all given numbers
 func Max[E RealNumber](numbers ...E) E {
 	if len(numbers) == 0 {
-		return E(0)
+		panic("at least one number is required in Max[E]")
 	}
 	m := numbers[0]
 	for _, n := range numbers {
@@ -110,11 +111,7 @@ func JoinSlice[E Integer](s []E) string {
 
 // joins a slice of strings into a single string
 func JoinSliceString(s []string) string {
-	res := ""
-	for _, e := range s {
-		res += e
-	}
-	return res
+	return strings.Join(s, "")
 }
 
 // removes any duplicates fm a slice
@@ -161,7 +158,7 @@ func RemoveDuplicateSlices(s [][]string) (res [][]string) {
 }
 
 // returns the sum of theintegers in the given slice
-func Sum[E RealNumber](lst []E) E {
+func Sum[E Number](lst []E) E {
 	res := E(0)
 	for _, element := range lst {
 		res += element
@@ -200,17 +197,13 @@ func DecimalToBase[E Integer, F Integer](n E, b F) (res string) {
 	return
 }
 
-// Returns a substring of the given string from the beginning up to a given index
-func Substring(s string, n int) string {
-	return s[:n]
-}
-
-// Reverses a string
-func ReverseString(s string) (res string) {
-	for i := len(s) - 1; i >= 0; i-- {
-		res += string(s[i])
+// ReverseString reverses a string
+func ReverseString(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
 	}
-	return
+	return string(r)
 }
 
 // Counts the occurence of a given in a slice

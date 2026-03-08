@@ -1,11 +1,11 @@
 package eulerlib
 
 type SignedInteger interface {
-	int | int8 | int16 | int32 | int64
+	~int | ~int8 | ~int16 | ~int32 | ~int64
 }
 
 type UnsignedInteger interface {
-	uint | uint8 | uint16 | uint32 | uint64
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
 }
 
 type Integer interface {
@@ -13,7 +13,7 @@ type Integer interface {
 }
 
 type Float interface {
-	float32 | float64
+	~float32 | ~float64
 }
 
 type RealNumber interface {
@@ -21,7 +21,7 @@ type RealNumber interface {
 }
 
 type Complex interface {
-	complex64 | complex128
+	~complex64 | ~complex128
 }
 
 type Number interface {
@@ -29,5 +29,5 @@ type Number interface {
 }
 
 type Comparable interface {
-	Number | string | byte | bool | rune | uintptr
+	Number | ~string | ~bool
 }
