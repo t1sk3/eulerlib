@@ -99,22 +99,25 @@ func TestFibonacciSingleBig(t *testing.T) {
 	}
 }
 
-func TestPowBigFloat(t *testing.T) {
-	base := big.NewFloat(3)
-	got := powBigFloat(base, 4)
-	f, _ := got.Float64()
-	if f != 81 {
-		t.Fatalf("powBigFloat(3, 4) = %v, want 81", f)
+func TestFibonacciSingleBigPrecision(t *testing.T) {
+	// F(100) = 354224848179261915075 — too large for float64, verifies exact precision
+	want, _ := new(big.Int).SetString("354224848179261915075", 10)
+	got := FibonacciSingleBig(100)
+	if got.Cmp(want) != 0 {
+		t.Errorf("FibonacciSingleBig(100) = %s, want %s", got.String(), want.String())
 	}
 }
 
-func TestZero(t *testing.T) {
-	z := zero()
-	if z.Prec() != 256 {
-		t.Fatalf("zero().Prec() = %d, want 256", z.Prec())
+func TestPowBigFloat(t *testing.T) {
+	base := big.NewFloat(3)
+	got := PowBigFloat(base, 4)
+	f, _ := got.Float64()
+	if f != 81 {
+		t.Fatalf("PowBigFloat(3, 4) = %v, want 81", f)
 	}
-	f, _ := z.Float64()
-	if f != 0 {
-		t.Fatalf("zero() = %v, want 0", f)
+	// Verify the original base is not mutated
+	origF, _ := base.Float64()
+	if origF != 3 {
+		t.Fatalf("PowBigFloat mutated base: got %v, want 3", origF)
 	}
 }

@@ -7,17 +7,18 @@ import (
 	"strconv"
 )
 
-// returns the number of divisors the given integer has
+// CountDivisors returns the number of divisors the given integer has.
 func CountDivisors[E Integer](n E) E {
 	count := E(0)
 	end := E(math.Sqrt(float64(n)))
-	for i := E(1); i < end; i++ {
+	for i := E(1); i <= end; i++ {
 		if n%i == 0 {
-			count += 2
+			if i == n/i {
+				count++
+			} else {
+				count += 2
+			}
 		}
-	}
-	if end*end == n {
-		count++
 	}
 	return count
 }
@@ -150,13 +151,23 @@ func DigitSum[E Integer](n E) (res E) {
 	return
 }
 
+// DigitSumString returns the sum of the decimal digits of the string s.
+// Works correctly for arbitrarily large digit strings.
 func DigitSumString(s string) int64 {
-	tmp, _ := strconv.Atoi(s)
-	return DigitSum(int64(tmp))
+	var res int64
+	for _, ch := range s {
+		if ch >= '0' && ch <= '9' {
+			res += int64(ch - '0')
+		}
+	}
+	return res
 }
 
-// Calculates greatest common divisor for the given integers
+// Gcd calculates the greatest common divisor for the given integers. Panics if no args given.
 func Gcd[E Integer](args ...E) E {
+	if len(args) == 0 {
+		panic("Gcd: at least one argument required")
+	}
 	res := args[0]
 	for _, v := range args[1:] {
 		res = gcd(res, v)
@@ -171,6 +182,8 @@ func gcd[E Integer](a, b E) E {
 	return a
 }
 
+// Factorize returns the prime factorization of n as a map of prime → exponent.
+// Returns an empty map for n <= 1.
 func Factorize[E Integer](n E) map[E]E {
 	factors := make(map[E]E)
 	for i := E(2); i <= n; i++ {
@@ -182,15 +195,30 @@ func Factorize[E Integer](n E) map[E]E {
 	return factors
 }
 
-func FactorizeBigInt(n *big.Int) map[*big.Int]*big.Int {
-	factors := make(map[*big.Int]*big.Int)
-	i := big.NewInt(2)
-	for i.Cmp(n) == -1 || i.Cmp(n) == 0 {
-		for n.Mod(n, i).Cmp(big.NewInt(0)) == 0 {
-			factors[i].Add(i, big.NewInt(1))
-			n.Div(n, i)
+// FactorizeBigInt returns the prime factorization of n as a slice of [factor, exponent] pairs.
+func FactorizeBigInt(n *big.Int) [][2]*big.Int {
+	var factors [][2]*big.Int
+	n = new(big.Int).Set(n)
+	two := big.NewInt(2)
+	i := new(big.Int).Set(two)
+	for {
+		sq := new(big.Int).Mul(i, i)
+		if sq.Cmp(n) > 0 {
+			break
+		}
+		if new(big.Int).Mod(n, i).Sign() == 0 {
+			exp := big.NewInt(0)
+			for new(big.Int).Mod(n, i).Sign() == 0 {
+				n.Div(n, i)
+				exp.Add(exp, big.NewInt(1))
+			}
+			fi := new(big.Int).Set(i)
+			factors = append(factors, [2]*big.Int{fi, exp})
 		}
 		i.Add(i, big.NewInt(1))
+	}
+	if n.Cmp(big.NewInt(1)) > 0 {
+		factors = append(factors, [2]*big.Int{new(big.Int).Set(n), big.NewInt(1)})
 	}
 	return factors
 }
@@ -217,15 +245,16 @@ func PrimeFactors[E Integer](n E) []E {
 	return primefs
 }
 
-// Return x^y % m
+// PowMod returns x^y % p. Requires p < 2^31 to avoid int64 overflow during squaring.
 func PowMod[E Integer](x, y, p E) int64 {
 	res := int64(1)
+	xm := int64(x) % int64(p)
 	for y > 0 {
 		if y&1 == 1 {
-			res = (res * int64(x)) % int64(p)
+			res = (res * xm) % int64(p)
 		}
 		y >>= 1
-		x = (x * x) % p
+		xm = (xm * xm) % int64(p)
 	}
 	return res
 }
@@ -244,48 +273,45 @@ func Binomial[E Integer](n E, k E) *big.Int {
 	return prod.Div(prod, FactorialBigInt(int64(k)))
 }
 
-// Calculates all primefactors of the given Big Integer
+// PrimeFactorsBigInt returns the prime factorization of n as [][]int64,
+// where each element is [prime, exponent]. Does not modify n.
 func PrimeFactorsBigInt(n *big.Int) (primefs [][]int64) {
-	var i2 *big.Int
-	tmp, _ := new(big.Int).SetString(n.Text(10), 10)
+	n = new(big.Int).Set(n)
 	two := big.NewInt(2)
-	tmp2 := []int64{0, 0}
-	for tmp.Mod(n, two).Text(10) == "0" {
-		tmp2[0] = 2
-		tmp2[1]++
+	exp := int64(0)
+	for new(big.Int).Mod(n, two).Sign() == 0 {
+		exp++
 		n.Div(n, two)
-		tmp, _ = new(big.Int).SetString(n.Text(10), 10)
 	}
-
-	primefs = append(primefs, tmp2)
-
+	if exp > 0 {
+		primefs = append(primefs, []int64{2, exp})
+	}
 	i := big.NewInt(3)
-	itmp, _ := new(big.Int).SetString(i.Text(10), 10)
-	for itmp.Mul(itmp, itmp).Cmp(n) == 0 || itmp.Mul(itmp, itmp).Cmp(n) == -1 {
-		tmp2 = []int64{0, 0}
-		i2, _ = new(big.Int).SetString(i.Text(10), 10)
-		for tmp.Mod(n, i).Text(10) == "0" {
-			tmp2[0] = i.Int64()
-			tmp2[1]++
-			n.Div(n, i2)
-			tmp, _ = new(big.Int).SetString(n.Text(10), 10)
+	for {
+		sq := new(big.Int).Mul(i, i)
+		if sq.Cmp(n) > 0 {
+			break
 		}
-		primefs = append(primefs, tmp2)
+		exp = 0
+		for new(big.Int).Mod(n, i).Sign() == 0 {
+			exp++
+			n.Div(n, i)
+		}
+		if exp > 0 {
+			primefs = append(primefs, []int64{i.Int64(), exp})
+		}
 		i.Add(i, two)
-		itmp = i
 	}
-
-	if n.Cmp(two) == 1 {
+	if n.Cmp(big.NewInt(1)) > 0 {
 		primefs = append(primefs, []int64{n.Int64(), 1})
 	}
-
 	return primefs
 }
 
-// Calculates b^n using integers
+// Pow calculates b^n using integers. Panics for negative n.
 func Pow[E Integer](b E, n E) E {
-	if n == 1 {
-		return b
+	if n < 0 {
+		panic("Pow: negative exponent")
 	}
 	res := E(1)
 	for i := E(1); i <= n; i++ {
@@ -294,30 +320,43 @@ func Pow[E Integer](b E, n E) E {
 	return res
 }
 
-// Calculates b^n as a Big Integer
+// PowBigInt returns b^n as a new *big.Int using binary exponentiation. Does not modify b.
 func PowBigInt(b *big.Int, n int64) *big.Int {
-	if n == 1 {
-		return b
+	if n == 0 {
+		return big.NewInt(1)
 	}
-	tmp := big.NewInt(b.Int64())
-	for i := int64(1); i <= n; i++ {
-		b.Mul(b, tmp)
+	result := big.NewInt(1)
+	base := new(big.Int).Set(b)
+	for n > 0 {
+		if n&1 == 1 {
+			result.Mul(result, base)
+		}
+		base.Mul(base, base)
+		n >>= 1
 	}
-	return b
+	return result
 }
 
-// Calculates b^n as a Big Float
+// PowBigFloat returns b^n as a new *big.Float using binary exponentiation. Does not modify b.
 func PowBigFloat(b *big.Float, n int64) *big.Float {
-	tmp := new(big.Float).Copy(b)
-	for i := int64(1); i < n; i++ {
-		b.Mul(b, tmp)
+	if n == 0 {
+		return new(big.Float).SetInt64(1)
 	}
-	return b
+	result := new(big.Float).SetInt64(1)
+	base := new(big.Float).Copy(b)
+	for n > 0 {
+		if n&1 == 1 {
+			result.Mul(result, base)
+		}
+		base.Mul(base, base)
+		n >>= 1
+	}
+	return result
 }
 
 // Checks whether the given number is a power of 2
 func IsPowerOfTwo[E Integer](n E) bool {
-	return n&(n-1) == 0
+	return n > 0 && n&(n-1) == 0
 }
 
 // Checks whether or not the given number is a perfect square
@@ -330,14 +369,6 @@ func FloatIsInteger[E Float](n E) bool {
 	return E(math.Floor(float64(n))) == n
 }
 
-func Lcd[E Integer](nums ...E) E {
-	res := E(1)
-	for _, v := range nums {
-		res = res * v / Gcd(res, v)
-	}
-	return res
-}
-
 func Lcm[E Integer](nums ...E) E {
 	res := E(1)
 	for _, v := range nums {
@@ -346,8 +377,19 @@ func Lcm[E Integer](nums ...E) E {
 	return res
 }
 
-// this function reduces a slice of integers using the given function
-func Reduce[E Integer](nums []E, f func(E, E) E) E {
+// Lcd is deprecated. Use Lcm instead.
+//
+// Deprecated: Use Lcm.
+func Lcd[E Integer](nums ...E) E {
+	return Lcm(nums...)
+}
+
+// Reduce applies f cumulatively to the elements of nums, starting with nums[0].
+// Panics if nums is empty.
+func Reduce[E any](nums []E, f func(E, E) E) E {
+	if len(nums) == 0 {
+		panic("Reduce: nums must not be empty")
+	}
 	res := nums[0]
 	for _, v := range nums[1:] {
 		res = f(res, v)
@@ -355,8 +397,57 @@ func Reduce[E Integer](nums []E, f func(E, E) E) E {
 	return res
 }
 
-// MaxInSlice: this functions returns the max value in the given slice (redirects to Max function)
-// Deprecated: Use Max instead
+// ReduceWithInit applies f cumulatively to the elements of nums, starting with initial.
+func ReduceWithInit[E any](initial E, nums []E, f func(E, E) E) E {
+	res := initial
+	for _, v := range nums {
+		res = f(res, v)
+	}
+	return res
+}
+
+// MaxInSlice returns the maximum value in the given slice.
+//
+// Deprecated: Use Max instead.
 func MaxInSlice[E Integer](nums []E) E {
 	return Max(nums...)
+}
+
+// SumDivisors returns the sum of proper divisors of n (all divisors excluding n itself).
+func SumDivisors[E Integer](n E) E {
+	if n <= 1 {
+		return 0
+	}
+	sum := E(1)
+	end := E(math.Sqrt(float64(n)))
+	for i := E(2); i <= end; i++ {
+		if n%i == 0 {
+			sum += i
+			if i != n/i {
+				sum += n / i
+			}
+		}
+	}
+	return sum
+}
+
+// IsAbundant returns true if the sum of proper divisors of n exceeds n.
+func IsAbundant[E Integer](n E) bool {
+	return SumDivisors(n) > n
+}
+
+// IsDeficient returns true if the sum of proper divisors of n is less than n.
+func IsDeficient[E Integer](n E) bool {
+	return SumDivisors(n) < n
+}
+
+// IsPerfect returns true if the sum of proper divisors of n equals n.
+func IsPerfect[E Integer](n E) bool {
+	return SumDivisors(n) == n
+}
+
+// IsAmicable returns true if SumDivisors(SumDivisors(a)) == a and SumDivisors(a) != a.
+func IsAmicable[E Integer](a E) bool {
+	b := SumDivisors(a)
+	return b != a && SumDivisors(b) == a
 }

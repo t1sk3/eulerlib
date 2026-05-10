@@ -1,6 +1,7 @@
 package eulerlib
 
 import (
+	"math/big"
 	"strconv"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestFactorial(t *testing.T) {
 
 func TestDigitSum(t *testing.T) {
 	testNums := []int64{0, 5, 22, 562, 1234567890, 1234567890123456789}
-	want := []int64{0, 5, 4, 13, 45, 90, 180}
+	want := []int64{0, 5, 4, 13, 45, 90}
 	for i, num := range testNums {
 		got := DigitSum(num)
 		if got != want[i] {
@@ -29,7 +30,7 @@ func TestDigitSum(t *testing.T) {
 
 func TestDigitSumString(t *testing.T) {
 	testNums := []string{"0", "5", "22", "562", "1234567890", "1234567890123456789"}
-	want := []int64{0, 5, 4, 13, 45, 90, 180}
+	want := []int64{0, 5, 4, 13, 45, 90}
 	for i, num := range testNums {
 		got := DigitSumString(num)
 		if got != want[i] {
@@ -52,7 +53,7 @@ func TestGcd(t *testing.T) {
 func TestFactorize(t *testing.T) {
 	testNums := []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9553}
 	want := []map[int64]int64{
-		{1: 1},
+		{}, // 1 has no prime factors
 		{2: 1},
 		{3: 1},
 		{2: 2},
@@ -66,9 +67,13 @@ func TestFactorize(t *testing.T) {
 	}
 	for i, num := range testNums {
 		got := Factorize(num)
+		if len(got) != len(want[i]) {
+			t.Errorf("Factorize(%d) has %d factors, want %d", num, len(got), len(want[i]))
+			continue
+		}
 		for k, v := range got {
 			if v != want[i][k] {
-				t.Errorf("Factorize(%d) == %d, want %d", num, got, want[i])
+				t.Errorf("Factorize(%d) == %v, want %v", num, got, want[i])
 			}
 		}
 	}
@@ -249,5 +254,132 @@ func TestCombinations(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestCountDivisors(t *testing.T) {
+	cases := []struct{ n, want int64 }{
+		{1, 1}, {2, 2}, {3, 2}, {4, 3}, {6, 4}, {12, 6}, {36, 9}, {100, 9}, {28, 6},
+	}
+	for _, tc := range cases {
+		if got := CountDivisors(tc.n); got != tc.want {
+			t.Errorf("CountDivisors(%d) = %d, want %d", tc.n, got, tc.want)
+		}
+	}
+}
+
+func TestSumDivisors(t *testing.T) {
+	cases := []struct{ n, want int64 }{
+		{1, 0}, {2, 1}, {6, 6}, {12, 16}, {28, 28}, {220, 284}, {496, 496},
+	}
+	for _, tc := range cases {
+		if got := SumDivisors(tc.n); got != tc.want {
+			t.Errorf("SumDivisors(%d) = %d, want %d", tc.n, got, tc.want)
+		}
+	}
+}
+
+func TestIsAbundantDeficientPerfect(t *testing.T) {
+	for _, n := range []int64{6, 28, 496} {
+		if !IsPerfect(n) {
+			t.Errorf("IsPerfect(%d) = false, want true", n)
+		}
+		if IsAbundant(n) {
+			t.Errorf("IsAbundant(%d) = true, want false", n)
+		}
+		if IsDeficient(n) {
+			t.Errorf("IsDeficient(%d) = true, want false", n)
+		}
+	}
+	if !IsAbundant(int64(12)) {
+		t.Error("IsAbundant(12) = false, want true")
+	}
+	if !IsDeficient(int64(8)) {
+		t.Error("IsDeficient(8) = false, want true")
+	}
+}
+
+func TestIsAmicable(t *testing.T) {
+	for _, n := range []int64{220, 284, 1184, 1210} {
+		if !IsAmicable(n) {
+			t.Errorf("IsAmicable(%d) = false, want true", n)
+		}
+	}
+	for _, n := range []int64{1, 6, 28, 100} {
+		if IsAmicable(n) {
+			t.Errorf("IsAmicable(%d) = true, want false", n)
+		}
+	}
+}
+
+func TestPowBigInt(t *testing.T) {
+	cases := []struct {
+		b, n int64
+		want int64
+	}{
+		{2, 0, 1}, {2, 1, 2}, {2, 10, 1024}, {3, 4, 81}, {5, 3, 125},
+	}
+	for _, tc := range cases {
+		b := big.NewInt(tc.b)
+		got := PowBigInt(b, tc.n)
+		if got.Int64() != tc.want {
+			t.Errorf("PowBigInt(%d, %d) = %d, want %d", tc.b, tc.n, got.Int64(), tc.want)
+		}
+		if b.Int64() != tc.b {
+			t.Errorf("PowBigInt mutated b: got %d, want %d", b.Int64(), tc.b)
+		}
+	}
+}
+
+func TestFactorizeBigInt(t *testing.T) {
+	n := big.NewInt(12)
+	pairs := FactorizeBigInt(n)
+	// 12 = 2^2 * 3^1
+	if len(pairs) != 2 {
+		t.Fatalf("FactorizeBigInt(12) returned %d pairs, want 2", len(pairs))
+	}
+	got := map[int64]int64{}
+	for _, pair := range pairs {
+		got[pair[0].Int64()] = pair[1].Int64()
+	}
+	if got[2] != 2 || got[3] != 1 {
+		t.Errorf("FactorizeBigInt(12) = %v, want {2:2, 3:1}", got)
+	}
+	if n.Int64() != 12 {
+		t.Errorf("FactorizeBigInt mutated n: got %d, want 12", n.Int64())
+	}
+}
+
+func TestPrimeFactorsBigInt(t *testing.T) {
+	n := big.NewInt(360) // 2^3 * 3^2 * 5
+	orig := new(big.Int).Set(n)
+	pairs := PrimeFactorsBigInt(n)
+	if n.Cmp(orig) != 0 {
+		t.Error("PrimeFactorsBigInt mutated input")
+	}
+	got := map[int64]int64{}
+	for _, pair := range pairs {
+		got[pair[0]] = pair[1]
+	}
+	if got[2] != 3 || got[3] != 2 || got[5] != 1 {
+		t.Errorf("PrimeFactorsBigInt(360) = %v, want {2:3, 3:2, 5:1}", got)
+	}
+}
+
+func TestReduceWithInit(t *testing.T) {
+	add := func(a, b int64) int64 { return a + b }
+	if got := ReduceWithInit(int64(10), []int64{1, 2, 3}, add); got != 16 {
+		t.Errorf("ReduceWithInit(10, [1,2,3], +) = %d, want 16", got)
+	}
+	if got := ReduceWithInit(int64(0), []int64{}, add); got != 0 {
+		t.Errorf("ReduceWithInit(0, [], +) = %d, want 0", got)
+	}
+}
+
+func TestDigitSumStringLarge(t *testing.T) {
+	// 25 nines → digit sum = 225
+	got := DigitSumString("9999999999999999999999999")
+	if got != 225 {
+		t.Errorf("DigitSumString(25×'9') = %d, want 225", got)
 	}
 }

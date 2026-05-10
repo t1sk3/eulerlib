@@ -75,7 +75,7 @@ func IsPalindrome(s string) bool {
 // returns the minimum of all given numbers
 func Min[E RealNumber](numbers ...E) E {
 	if len(numbers) == 0 {
-		return E(0)
+		panic("at least one number is required in Min[E]")
 	}
 	m := numbers[0]
 	for _, n := range numbers {
@@ -128,15 +128,22 @@ func RemoveDuplicates[E Comparable](s []E) []E {
 	return res
 }
 
-func RemoveDuplicates2[E any](s []E, f func(E, E) bool) []E {
+// RemoveDuplicatesFunc removes duplicates from s using equality function f.
+func RemoveDuplicatesFunc[E any](s []E, f func(E, E) bool) []E {
 	list := []E{}
 	for _, item := range s {
 		if !SliceContainsAny(list, item, f) {
 			list = append(list, item)
 		}
 	}
-
 	return list
+}
+
+// RemoveDuplicates2 is deprecated. Use RemoveDuplicatesFunc instead.
+//
+// Deprecated: Use RemoveDuplicatesFunc.
+func RemoveDuplicates2[E any](s []E, f func(E, E) bool) []E {
+	return RemoveDuplicatesFunc(s, f)
 }
 
 // Removes duplicates from a slice of strings
@@ -157,7 +164,7 @@ func RemoveDuplicateSlices(s [][]string) (res [][]string) {
 	return
 }
 
-// returns the sum of theintegers in the given slice
+// returns the sum of the integers in the given slice
 func Sum[E Number](lst []E) E {
 	res := E(0)
 	for _, element := range lst {
@@ -166,20 +173,17 @@ func Sum[E Number](lst []E) E {
 	return res
 }
 
+// Product returns the product of all elements in lst. Returns 1 for an empty slice.
+func Product[E Number](lst []E) E {
+	res := E(1)
+	for _, element := range lst {
+		res *= element
+	}
+	return res
+}
+
 // DecimalToBase converts n to base b (2..62) and returns the result as a string.
-// It uses the alphabet "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
-// Returns an empty string if b < 2 or b > 62.
-//
-// Example:
-// s := DecimalToBase(255, 16)
-// // s == "FF"
-//
-// Parameters:
-// n - integer to convert
-// b - target base (2..62)
-//
-// Returns:
-// string representation of n in base b
+// Returns "0" for n==0, prepends "-" for negative n, returns "" for invalid base.
 func DecimalToBase[E Integer, F Integer](n E, b F) (res string) {
 	alphabet := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	n64 := int64(n)
@@ -188,12 +192,20 @@ func DecimalToBase[E Integer, F Integer](n E, b F) (res string) {
 	if b64 < 2 || b64 > 62 {
 		return
 	}
-
+	if n64 == 0 {
+		return "0"
+	}
+	negative := n64 < 0
+	if negative {
+		n64 = -n64
+	}
 	for n64 != 0 {
 		res = string(alphabet[n64%b64]) + res
 		n64 /= b64
 	}
-
+	if negative {
+		res = "-" + res
+	}
 	return
 }
 
@@ -221,7 +233,7 @@ func RemoveFromSlice[E RealNumber](slice []E, s int) []E {
 	return append(slice[:s], slice[s+1:]...)
 }
 
-// Returns the number of digits in the given integer
+// Totient returns Euler's totient φ(n): the count of integers in [1,n] coprime to n.
 func Totient[E Integer](n E) E {
 	res := n
 	for i := E(2); i*i <= n; i++ {
@@ -238,16 +250,25 @@ func Totient[E Integer](n E) E {
 	return res
 }
 
-// Lists totients
+// ListTotients returns a slice of length n+1 where res[i] = φ(i) for i in [0,n].
+// Uses a sieve for O(n log log n) performance.
 func ListTotients[E Integer](n E) []E {
 	res := make([]E, n+1)
-	for i := E(1); i <= n; i++ {
-		res[i] = Totient(i)
+	for i := E(0); i <= n; i++ {
+		res[i] = i
+	}
+	for i := E(2); i <= n; i++ {
+		if res[i] == i { // i is prime
+			for j := i; j <= n; j += i {
+				res[j] -= res[j] / i
+			}
+		}
 	}
 	return res
 }
 
-// Returns the number of digits in the given integer
+// Range returns a slice from start (inclusive) to stop (exclusive), stepping by 1.
+// If start > stop, it counts down.
 func Range[E RealNumber](start, stop E) (res []E) {
 	if start < stop {
 		for i := start; i < stop; i++ {
@@ -378,4 +399,23 @@ func ReadFile(name string) (string, error) {
 func FileExists(name string) bool {
 	_, err := os.Stat(name)
 	return !os.IsNotExist(err)
+}
+
+// Abs returns the absolute value of n.
+func Abs[E SignedInteger](n E) E {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+// SumOfSquares returns 1² + 2² + ... + n².
+func SumOfSquares[E Integer](n E) E {
+	return n * (n + 1) * (2*n + 1) / 6
+}
+
+// SquareOfSum returns (1 + 2 + ... + n)².
+func SquareOfSum[E Integer](n E) E {
+	s := n * (n + 1) / 2
+	return s * s
 }

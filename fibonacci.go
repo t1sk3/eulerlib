@@ -1,7 +1,6 @@
 package eulerlib
 
 import (
-	"math"
 	"math/big"
 )
 
@@ -70,34 +69,20 @@ func FibonacciBig(limit int64) (res []big.Int) {
 	return
 }
 
+// FibonacciSingleBig returns the nth Fibonacci number as a *big.Int.
+// F(0)=0, F(1)=1, F(2)=1, ... Uses an iterative approach for exact precision.
 func FibonacciSingleBig(n int64) *big.Int {
-	if n < 2 {
-		return big.NewInt(n)
+	if n < 0 {
+		panic("FibonacciSingleBig: n must be non-negative")
 	}
-	temp1 := big.NewFloat(1 + math.Sqrt(5))
-	temp2 := big.NewFloat(1 - math.Sqrt(5))
-	temp3 := powBigFloat(big.NewFloat(2), uint64(n))
-	temp3.Mul(temp3, big.NewFloat(math.Sqrt(5)))
-
-	temp1 = powBigFloat(temp1, uint64(n))
-	temp2 = powBigFloat(temp2, uint64(n))
-	temp1.Sub(temp1, temp2)
-	temp1.Quo(temp1, temp3)
-
-	res, _ := temp1.Int(nil)
-	return res
-}
-
-func powBigFloat(a *big.Float, e uint64) *big.Float {
-	result := zero().Copy(a)
-	for i := uint64(0); i < e-1; i++ {
-		result.Mul(result, a)
+	if n == 0 {
+		return big.NewInt(0)
 	}
-	return result
-}
-
-func zero() *big.Float {
-	r := big.NewFloat(0.0)
-	r.SetPrec(256)
-	return r
+	a := big.NewInt(0)
+	b := big.NewInt(1)
+	for i := int64(1); i < n; i++ {
+		a.Add(a, b)
+		a, b = b, a
+	}
+	return new(big.Int).Set(b)
 }
