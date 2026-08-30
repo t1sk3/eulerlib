@@ -39,6 +39,7 @@ func (v *Vector3[E]) Add(o Vector3[E]) *Vector3[E] {
 	return &Vector3[E]{*v.Vector.Add(o.Vector)}
 }
 
+// Sub shadows the promoted Vector.Sub so chaining stays in Vector3.
 func (v *Vector3[E]) Sub(o Vector3[E]) *Vector3[E] {
 	return &Vector3[E]{*v.Vector.Sub(o.Vector)}
 }

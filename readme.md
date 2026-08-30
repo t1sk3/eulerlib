@@ -149,7 +149,7 @@ Requires **Go 1.23+**.
 | `v2.Cross(o)` | Perp-dot product (z-component of the 3D cross product) — `Vector2` only |
 | `v2.Perp()` | Returns the perpendicular vector `(-y, x)` — `Vector2` only |
 | `v3.Cross(o)` | 3D cross product, returns a new `Vector3` |
-| `v.Add(o)`, `v.Sub(o)`, `v.Mul(o)`, `v.Div(o)` | Element-wise arithmetic, returns the same dimension type (`Vector2` and `Vector3`) |
+| `v.Add(o)`, `v.Sub(o)`, `v.Mul(o)`, `v.Div(o)` | Element-wise arithmetic (`o` is a value; pass `*other` if you have a pointer), returns the same dimension type (`Vector2` and `Vector3`) |
 
 ### Slice Utilities
 
