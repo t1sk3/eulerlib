@@ -83,3 +83,21 @@ func TestVector2Sub(t *testing.T) {
 		t.Fatalf("Sub() = (%d, %d), want (3, 4)", got.X(), got.Y())
 	}
 }
+
+func TestVector2Mul(t *testing.T) {
+	a := NewVector2(2, 3)
+	b := NewVector2(4, 5)
+	got := a.Mul(*b)
+	if got.X() != 8 || got.Y() != 15 {
+		t.Fatalf("Mul() = (%d, %d), want (8, 15)", got.X(), got.Y())
+	}
+}
+
+func TestVector2Div(t *testing.T) {
+	a := NewVector2(10, 20)
+	b := NewVector2(2, 5)
+	got := a.Div(*b)
+	if got.X() != 5 || got.Y() != 4 {
+		t.Fatalf("Div() = (%d, %d), want (5, 4)", got.X(), got.Y())
+	}
+}

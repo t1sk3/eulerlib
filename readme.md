@@ -144,12 +144,12 @@ Requires **Go 1.23+**.
 | `AsVector3(v)` | Adopts a length-3 `Vector` as a `Vector3` (shares storage, panics if length ≠ 3) |
 | `v.X()`, `v.Y()` | Component accessors (`Vector2` and `Vector3`) |
 | `v.Z()` | Component accessor (`Vector3` only) |
-| `v.SetX(x)`, `v.SetY(y)` | Component setters (`Vector2` only) |
+| `v.SetX(x)`, `v.SetY(y)` | Component setters (`Vector2` and `Vector3`) |
+| `v3.SetZ(z)` | Component setter (`Vector3` only) |
 | `v2.Cross(o)` | Perp-dot product (z-component of the 3D cross product) — `Vector2` only |
 | `v2.Perp()` | Returns the perpendicular vector `(-y, x)` — `Vector2` only |
 | `v3.Cross(o)` | 3D cross product, returns a new `Vector3` |
-| `v2.Add(o)`, `v2.Sub(o)` | Element-wise addition/subtraction, returns the same dimension type |
-| `v3.Add(o)` | Element-wise addition, returns the same dimension type |
+| `v.Add(o)`, `v.Sub(o)`, `v.Mul(o)`, `v.Div(o)` | Element-wise arithmetic (`o` is a value; pass `*other` if you have a pointer), returns the same dimension type (`Vector2` and `Vector3`) |
 
 ### Slice Utilities
 
