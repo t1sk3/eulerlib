@@ -1,3 +1,7 @@
+// Package etc is a grab-bag of generic slice, string, and file utilities
+// used throughout eulerlib (and handy on their own): min/max, filter/map/
+// reduce-style helpers, deduplication, ranges, base conversion, and small
+// file I/O wrappers.
 package etc
 
 import (
@@ -307,6 +311,7 @@ func SliceContains[E utils.Comparable](s []E, e E) bool {
 	return slices.Contains(s, e)
 }
 
+// SliceContainsAny returns true if any element of s equals e according to f.
 func SliceContainsAny[E any](s []E, e E, f func(E, E) bool) bool {
 	for _, v := range s {
 		if f(v, e) {

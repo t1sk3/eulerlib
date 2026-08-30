@@ -1,3 +1,5 @@
+// Package figurate provides functions for generating and testing triangular,
+// pentagonal, and hexagonal numbers.
 package figurate
 
 import (

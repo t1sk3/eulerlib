@@ -1,3 +1,6 @@
+// Package fibonacci provides functions for generating Fibonacci sequences
+// and computing individual Fibonacci numbers, including arbitrary-precision
+// variants backed by math/big.
 package fibonacci
 
 import (

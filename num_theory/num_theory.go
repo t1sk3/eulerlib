@@ -1,3 +1,6 @@
+// Package num_theory provides number-theory functions: divisors, GCD/LCM,
+// factorization, powers and modular arithmetic, combinatorics, and other
+// numeric predicates used when solving Project Euler-style problems.
 package num_theory
 
 import (
@@ -144,6 +147,7 @@ func FactorialDigitSum[E utils.Integer](n E) E {
 	return res
 }
 
+// DigitSum returns the sum of the decimal digits of n.
 func DigitSum[E utils.Integer](n E) (res E) {
 
 	for n > 0 {
@@ -178,6 +182,7 @@ func Gcd[E utils.Integer](args ...E) E {
 	return res
 }
 
+// gcd computes the greatest common divisor of a and b using the Euclidean algorithm.
 func gcd[E utils.Integer](a, b E) E {
 	for b != 0 {
 		a, b = b, a%b
@@ -391,10 +396,12 @@ func IsSquare[E utils.Integer](n E) bool {
 	return false
 }
 
+// FloatIsInteger returns true if n has no fractional part.
 func FloatIsInteger[E utils.Float](n E) bool {
 	return E(math.Floor(float64(n))) == n
 }
 
+// Lcm returns the least common multiple of the given integers.
 func Lcm[E utils.Integer](nums ...E) E {
 	res := E(1)
 	for _, v := range nums {

@@ -1,3 +1,5 @@
+// Package prime_numbers provides prime-related functions: primality testing,
+// listing and counting primes, prime generation, and a stepping iterator.
 package prime_numbers
 
 import (
@@ -7,29 +9,37 @@ import (
 	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
+// PrimeNumberIterator steps through the primes one at a time, starting from
+// its current value. Use NewPrimeNumberIterator to create one.
 type PrimeNumberIterator[E utils.Integer] struct {
 	current E
 }
 
+// Proceed advances the iterator to the next prime after its current value.
 func (p *PrimeNumberIterator[E]) Proceed() {
 	p.current = NextPrime(p.current)
 }
 
+// Next advances the iterator to the next prime and returns it.
 func (p *PrimeNumberIterator[E]) Next() E {
 	p.Proceed()
 	return p.current
 }
 
+// Current returns the iterator's current value without advancing it.
 func (p *PrimeNumberIterator[E]) Current() E {
 	return p.current
 }
 
+// Reset returns the iterator to its initial (zero) state.
 func (p *PrimeNumberIterator[E]) Reset() {
 	p.current = 0
 }
 
-// function that returns a new prime number iterator with an optional starting point, only one argument is allowed
-// if no arguments are given, the iterator starts at 0 and a type must be specified
+// NewPrimeNumberIterator returns a new PrimeNumberIterator, optionally
+// starting just before the given value so the first call to Next returns the
+// next prime after it. At most one starting value may be given; with none,
+// the iterator starts at 0.
 func NewPrimeNumberIterator[E utils.Integer](params ...E) *PrimeNumberIterator[E] {
 	if len(params) > 1 {
 		panic("Too many arguments")
