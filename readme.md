@@ -116,6 +116,41 @@ Requires **Go 1.23+**.
 | `IsTriplet(a, b, c)` | True if (a, b, c) is a Pythagorean triplet |
 | `ToRadians(n)` | Converts degrees to radians |
 
+### Vectors
+
+`Vector[E]` is an N-dimensional vector backed by a slice of elements. `Vector2[E]` and `Vector3[E]` embed `Vector[E]` to add named `X`/`Y`/`Z` accessors and dimension-specific operations (`Cross`, `Perp`); both require `SignedNumber`.
+
+| Function | Description |
+|---|---|
+| `NewVector(elements)` | Creates a vector from a slice of elements (copies the slice) |
+| `v.Len()` | Number of elements in the vector |
+| `v.At(i)` | Element at index i |
+| `v.Set(i, e)` | Sets the element at index i |
+| `v.Elements()` | Returns a copy of the underlying elements as a slice |
+| `v.Swap(i, j)` | Swaps the elements at indices i and j |
+| `v.Add(o)` | Element-wise addition, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Sub(o)` | Element-wise subtraction, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Mul(o)` | Element-wise multiplication, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Div(o)` | Element-wise division, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Dot(o)` | Dot product of two vectors (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+
+#### Vector2 / Vector3
+
+| Function | Description |
+|---|---|
+| `NewVector2(x, y)` | Creates a 2D vector |
+| `NewVector3(x, y, z)` | Creates a 3D vector |
+| `AsVector2(v)` | Adopts a length-2 `Vector` as a `Vector2` (shares storage, panics if length ≠ 2) |
+| `AsVector3(v)` | Adopts a length-3 `Vector` as a `Vector3` (shares storage, panics if length ≠ 3) |
+| `v.X()`, `v.Y()` | Component accessors (`Vector2` and `Vector3`) |
+| `v.Z()` | Component accessor (`Vector3` only) |
+| `v.SetX(x)`, `v.SetY(y)` | Component setters (`Vector2` only) |
+| `v2.Cross(o)` | Perp-dot product (z-component of the 3D cross product) — `Vector2` only |
+| `v2.Perp()` | Returns the perpendicular vector `(-y, x)` — `Vector2` only |
+| `v3.Cross(o)` | 3D cross product, returns a new `Vector3` |
+| `v2.Add(o)`, `v2.Sub(o)` | Element-wise addition/subtraction, returns the same dimension type |
+| `v3.Add(o)` | Element-wise addition, returns the same dimension type |
+
 ### Slice Utilities
 
 | Function | Description |
@@ -189,6 +224,7 @@ RealNumber      // Integer | Float
 Complex         // ~complex64 | ~complex128
 Number          // RealNumber | Complex
 Comparable      // Number | ~string | ~bool
+SignedNumber    // SignedInteger | Float | Complex
 ```
 
 ---
@@ -225,4 +261,19 @@ phi := eulerlib.ListTotients(100) // phi[i] = φ(i)
 eulerlib.IsTriangular(55)  // true  (T(10) = 55)
 eulerlib.IsPentagonal(51)  // true  (P(6)  = 51)
 eulerlib.IsHexagonal(45)   // true  (H(5)  = 45)
+
+// N-dimensional vector arithmetic
+a := eulerlib.NewVector([]int{1, 2, 3})
+b := eulerlib.NewVector([]int{4, 5, 6})
+a.Dot(*b) // 32  (1*4 + 2*5 + 3*6)
+
+// 2D cross (perp-dot) product
+p := eulerlib.NewVector2(1, 2)
+q := eulerlib.NewVector2(3, 4)
+p.Cross(*q) // -2  (1*4 - 2*3)
+
+// 3D cross product
+i := eulerlib.NewVector3(1, 0, 0)
+j := eulerlib.NewVector3(0, 1, 0)
+i.Cross(*j) // Vector3{0, 0, 1}
 ```
