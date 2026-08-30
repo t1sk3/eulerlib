@@ -10,6 +10,7 @@ func NewVector3[E utils.SignedNumber](x, y, z E) *Vector3[E] {
 	return &Vector3[E]{Vector[E]{elements: []E{x, y, z}}}
 }
 
+// AsVector3 adopts an existing Vector (no copy — they share backing storage).
 func AsVector3[E utils.SignedNumber](v *Vector[E]) *Vector3[E] {
 	if v.Len() != 3 {
 		panic("vector is not of length 3")
