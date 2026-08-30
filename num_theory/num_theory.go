@@ -367,24 +367,28 @@ func IsSquare[E utils.Integer](n E) bool {
 	if n < 0 {
 		return false
 	}
-	// Perfect squares mod 64 can only be: 0,1,4,9,16,17,25,33,36,41,49,57
-	// This bitmask encodes those as set bits, rejecting ~70% of inputs instantly
-	const mask64 uint64 = 0x0202021202030213 // TODO: test
-	if mask64>>(uint(n)&63)&1 == 0 {
+
+	// Quick elimination using hexadecimal bitmask
+	// Perfect squares only end in 0, 1, 4, or 9 in base 16
+	if (0x0202021202030213>>(n&0x3F))&1 == 0 {
 		return false
 	}
-	// Second filter: perfect squares mod 63 can only be 0,1,4,7,9,16,18,22,25,28,36,46,49,58
-	const mask63 uint64 = 0x0004015955002031 // TODO: test
-	m := uint(n) % 63
-	if mask63>>m&1 == 0 {
-		return false
+
+	// Fast binary search for the square root
+	low, high := E(0), n
+	for low <= high {
+		mid := (low + high) / 2
+		sq := mid * mid
+		if sq == n {
+			return true
+		} else if sq < n {
+			low = mid + 1
+		} else {
+			high = mid - 1
+		}
 	}
-	s := E(math.Sqrt(float64(n)))
-	if s*s == n {
-		return true
-	}
-	s++
-	return s*s == n
+
+	return false
 }
 
 func FloatIsInteger[E utils.Float](n E) bool {
