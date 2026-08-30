@@ -31,3 +31,7 @@ type Number interface {
 type Comparable interface {
 	Number | ~string | ~bool
 }
+
+type SignedNumber interface {
+	SignedInteger | Float | Complex
+}
