@@ -8,11 +8,39 @@ go get github.com/t1sk3/eulerlib/v2
 
 Requires **Go 1.23+**.
 
+eulerlib is split into small, focused packages instead of one flat package — import only what you need:
+
+```go
+import (
+	"github.com/t1sk3/eulerlib/v2/prime_numbers"
+	"github.com/t1sk3/eulerlib/v2/num_theory"
+	"github.com/t1sk3/eulerlib/v2/vector_n"
+)
+
+prime_numbers.IsPrime(97)          // true
+num_theory.Factorize(int64(360))   // map[2:3 3:2 5:1]
+vector_n.NewVector([]int{1, 2, 3}) // *Vector[int]
+```
+
+| Package | Import path | Covers |
+|---|---|---|
+| `prime_numbers` | `.../v2/prime_numbers` | Primality, prime listing/counting/generation, prime iterator |
+| `num_theory` | `.../v2/num_theory` | Divisors, GCD/LCM, factorization, powers, modular arithmetic, combinatorics |
+| `fibonacci` | `.../v2/fibonacci` | Fibonacci sequences and single terms (incl. `big.Int`), Collatz-adjacent helpers |
+| `figurate` | `.../v2/figurate` | Triangular, pentagonal, and hexagonal numbers |
+| `sequences` | `.../v2/sequences` | Collatz sequence and length |
+| `pythagoras` | `.../v2/pythagoras` | Pythagorean triplet check |
+| `vector_n` | `.../v2/vector_n` | N-dimensional, 2D, and 3D vector arithmetic |
+| `etc` | `.../v2/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
+| `utils` | `.../v2/utils` | Generic type constraints (`Integer`, `Float`, `Number`, ...) and reflection-based type checks |
+
+Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/v2) comments on every exported symbol.
+
 ---
 
 ## Reference
 
-### Primes
+### Primes — `prime_numbers`
 
 | Function | Description |
 |---|---|
@@ -25,10 +53,8 @@ Requires **Go 1.23+**.
 | `SumPrimes(s, e)` | Sums all primes in the range [s, e] |
 | `PrimeGenerator(limit)` | Channel-based prime generator up to limit |
 | `NewPrimeNumberIterator(start?)` | Iterator that steps through primes one at a time |
-| `PrimeFactors(n)` | Returns the prime factors of n (with repeats) |
-| `PrimeFactorsBigInt(n)` | Prime factors of a `*big.Int` as `[][]int64{prime, exp}` |
 
-### Divisors
+### Divisors, Factorization & GCD — `num_theory`
 
 | Function | Description |
 |---|---|
@@ -39,17 +65,14 @@ Requires **Go 1.23+**.
 | `IsDeficient(n)` | True if `SumDivisors(n) < n` |
 | `IsPerfect(n)` | True if `SumDivisors(n) == n` (e.g. 6, 28, 496) |
 | `IsAmicable(n)` | True if n and `SumDivisors(n)` form an amicable pair |
-
-### Factorization & GCD
-
-| Function | Description |
-|---|---|
 | `Factorize(n)` | Prime factorization as `map[E]E{prime: exponent}` |
 | `FactorizeBigInt(n)` | Prime factorization of `*big.Int` as `[][2]*big.Int` |
+| `PrimeFactors(n)` | Returns the prime factors of n (with repeats) |
+| `PrimeFactorsBigInt(n)` | Prime factors of a `*big.Int` as `[][]int64{prime, exp}` |
 | `Gcd(a, b, ...)` | Greatest common divisor |
 | `Lcm(a, b, ...)` | Least common multiple |
 
-### Powers & Modular Arithmetic
+### Powers & Modular Arithmetic — `num_theory`
 
 | Function | Description |
 |---|---|
@@ -60,7 +83,7 @@ Requires **Go 1.23+**.
 | `IsPowerOfTwo(n)` | True if n is a power of two |
 | `Binomial(n, k)` | n! / (k! (n-k)!) as `*big.Int` |
 
-### Combinatorics
+### Combinatorics — `num_theory`
 
 | Function | Description |
 |---|---|
@@ -71,21 +94,21 @@ Requires **Go 1.23+**.
 | `PermutationCount(arr)` | Number of distinct permutations |
 | `Combinations(set, n)` | All size-n combinations (pass 0 for all sizes) |
 
-### Number Theory
+### Number Theory — `num_theory`
 
 | Function | Description |
 |---|---|
-| `Totient(n)` | Euler's totient φ(n) |
-| `ListTotients(n)` | φ(0)…φ(n) via O(n log log n) sieve |
+| `Totient(n)` | Euler's totient φ(n) *(in `etc`)* |
+| `ListTotients(n)` | φ(0)…φ(n) via O(n log log n) sieve *(in `etc`)* |
 | `DigitSum(n)` | Sum of decimal digits of n |
 | `DigitSumString(s)` | Sum of decimal digits of a numeric string (arbitrary length) |
 | `IsSquare(n)` | True if n is a perfect square |
 | `FloatIsInteger(n)` | True if float has no fractional part |
-| `DecimalToBase(n, b)` | Converts n to base b (2–62) as a string |
-| `IsPandigital(n)` | True if n contains digits 1–9 exactly once |
-| `IsPandigitalInBase(n, b)` | Pandigital check in an arbitrary base |
+| `IsPandigital(n)` | True if n contains digits 1–9 exactly once *(in `etc`)* |
+| `IsPandigitalInBase(n, b)` | Pandigital check in an arbitrary base *(in `etc`)* |
+| `ToRadians(n)` | Converts degrees to radians |
 
-### Figurate Numbers
+### Figurate Numbers — `figurate`
 
 | Function | Description |
 |---|---|
@@ -96,7 +119,7 @@ Requires **Go 1.23+**.
 | `NthHexagonal(n)` | nth hexagonal number: n(2n−1) |
 | `IsHexagonal(n)` | True if n is hexagonal |
 
-### Sequences
+### Sequences — `fibonacci` / `sequences`
 
 | Function | Description |
 |---|---|
@@ -106,17 +129,16 @@ Requires **Go 1.23+**.
 | `FibonacciBig(limit)` | Fibonacci slice as `[]big.Int` |
 | `GenFiboBig(limit)` | Channel-based `big.Int` Fibonacci generator |
 | `FibonacciSingleBig(n)` | nth Fibonacci number as `*big.Int` (exact, iterative) |
-| `Collatz(n)` | Full Collatz sequence from n to 1 |
-| `CollatzLength(n)` | Number of steps in the Collatz sequence |
+| `Collatz(n)` | Full Collatz sequence from n to 1 *(in `sequences`)* |
+| `CollatzLength(n)` | Number of steps in the Collatz sequence *(in `sequences`)* |
 
-### Geometry
+### Geometry — `pythagoras`
 
 | Function | Description |
 |---|---|
 | `IsTriplet(a, b, c)` | True if (a, b, c) is a Pythagorean triplet |
-| `ToRadians(n)` | Converts degrees to radians |
 
-### Vectors
+### Vectors — `vector_n`
 
 `Vector[E]` is an N-dimensional vector backed by a slice of elements. `Vector2[E]` and `Vector3[E]` embed `Vector[E]` to add named `X`/`Y`/`Z` accessors and dimension-specific operations (`Cross`, `Perp`); both require `SignedNumber`.
 
@@ -151,7 +173,7 @@ Requires **Go 1.23+**.
 | `v3.Cross(o)` | 3D cross product, returns a new `Vector3` |
 | `v.Add(o)`, `v.Sub(o)`, `v.Mul(o)`, `v.Div(o)` | Element-wise arithmetic (`o` is a value; pass `*other` if you have a pointer), returns the same dimension type (`Vector2` and `Vector3`) |
 
-### Slice Utilities
+### Slice Utilities — `etc`
 
 | Function | Description |
 |---|---|
@@ -166,8 +188,8 @@ Requires **Go 1.23+**.
 | `RangeStep(start, stop, step)` | Range with custom step |
 | `Filter(slice, fn)` | Keep elements matching predicate |
 | `Map(slice, fn)` | Transform every element |
-| `Reduce(slice, fn)` | Fold left, starting from slice[0] |
-| `ReduceWithInit(init, slice, fn)` | Fold left with an explicit initial value |
+| `Reduce(slice, fn)` | Fold left, starting from slice[0] *(in `num_theory`)* |
+| `ReduceWithInit(init, slice, fn)` | Fold left with an explicit initial value *(in `num_theory`)* |
 | `Sort(slice, fn)` | Sort in-place using a less function |
 | `Unique(slice)` | Remove duplicates (requires `comparable`) |
 | `UniqueCount(slice)` | Map of element → count |
@@ -180,15 +202,16 @@ Requires **Go 1.23+**.
 | `GenerateSlice(n, value)` | Create a slice of length n filled with value |
 | `JoinSlice(slice)` | Concatenate integer slice into a string |
 
-### String Utilities
+### String Utilities — `etc`
 
 | Function | Description |
 |---|---|
 | `IsPalindrome(s)` | True if s reads the same forwards and backwards |
 | `ReverseString(s)` | Reverses a string (Unicode-safe) |
 | `MakeIntSlice(n)` | Digits of n as a `[]E` slice |
+| `DecimalToBase(n, b)` | Converts n to base b (2–62) as a string |
 
-### File I/O
+### File I/O — `etc`
 
 | Function | Description |
 |---|---|
@@ -197,7 +220,7 @@ Requires **Go 1.23+**.
 | `ReadFile(name)` | Read a file's content as a string |
 | `FileExists(name)` | True if the file exists |
 
-### Type Utilities
+### Type Utilities — `utils`
 
 | Function | Description |
 |---|---|
@@ -213,7 +236,7 @@ Requires **Go 1.23+**.
 
 ---
 
-## Type Constraints
+## Type Constraints — `utils`
 
 ```go
 SignedInteger   // ~int | ~int8 | ~int16 | ~int32 | ~int64
@@ -232,48 +255,66 @@ SignedNumber    // SignedInteger | Float | Complex
 ## Examples
 
 ```go
+import (
+	"fmt"
+
+	"github.com/t1sk3/eulerlib/v2/etc"
+	"github.com/t1sk3/eulerlib/v2/fibonacci"
+	"github.com/t1sk3/eulerlib/v2/figurate"
+	"github.com/t1sk3/eulerlib/v2/num_theory"
+	"github.com/t1sk3/eulerlib/v2/prime_numbers"
+	"github.com/t1sk3/eulerlib/v2/sequences"
+	"github.com/t1sk3/eulerlib/v2/vector_n"
+)
+
 // Check if 28 is a perfect number
-eulerlib.IsPerfect(28) // true — SumDivisors(28) = 1+2+4+7+14 = 28
+num_theory.IsPerfect(28) // true — SumDivisors(28) = 1+2+4+7+14 = 28
 
 // Find the 10,001st prime
-iter := eulerlib.NewPrimeNumberIterator[int]()
+iter := prime_numbers.NewPrimeNumberIterator[int]()
 for i := 0; i < 10001; i++ {
     iter.Next()
 }
 fmt.Println(iter.Current()) // 104743
 
 // Sum of all primes below 2,000,000 (Euler #10)
-fmt.Println(eulerlib.SumPrimes(0, 2_000_000)) // 142913828922
+fmt.Println(prime_numbers.SumPrimes(0, 2_000_000)) // 142913828922
 
 // Factorize a number
-eulerlib.Factorize(int64(360)) // map[2:3 3:2 5:1]  (2³ × 3² × 5)
+num_theory.Factorize(int64(360)) // map[2:3 3:2 5:1]  (2³ × 3² × 5)
 
 // Collatz sequence length for 27
-eulerlib.CollatzLength(27) // 112
+sequences.CollatzLength(27) // 112
 
 // 100th Fibonacci number (exact)
-eulerlib.FibonacciSingleBig(100).String() // "354224848179261915075"
+fibonacci.FibonacciSingleBig(100).String() // "354224848179261915075"
 
 // Euler's totient sieve up to 100
-phi := eulerlib.ListTotients(100) // phi[i] = φ(i)
+phi := etc.ListTotients(100) // phi[i] = φ(i)
 
 // Check figurate numbers
-eulerlib.IsTriangular(55)  // true  (T(10) = 55)
-eulerlib.IsPentagonal(51)  // true  (P(6)  = 51)
-eulerlib.IsHexagonal(45)   // true  (H(5)  = 45)
+figurate.IsTriangular(55)  // true  (T(10) = 55)
+figurate.IsPentagonal(51)  // true  (P(6)  = 51)
+figurate.IsHexagonal(45)   // true  (H(5)  = 45)
 
 // N-dimensional vector arithmetic
-a := eulerlib.NewVector([]int{1, 2, 3})
-b := eulerlib.NewVector([]int{4, 5, 6})
+a := vector_n.NewVector([]int{1, 2, 3})
+b := vector_n.NewVector([]int{4, 5, 6})
 a.Dot(*b) // 32  (1*4 + 2*5 + 3*6)
 
 // 2D cross (perp-dot) product
-p := eulerlib.NewVector2(1, 2)
-q := eulerlib.NewVector2(3, 4)
+p := vector_n.NewVector2(1, 2)
+q := vector_n.NewVector2(3, 4)
 p.Cross(*q) // -2  (1*4 - 2*3)
 
 // 3D cross product
-i := eulerlib.NewVector3(1, 0, 0)
-j := eulerlib.NewVector3(0, 1, 0)
+i := vector_n.NewVector3(1, 0, 0)
+j := vector_n.NewVector3(0, 1, 0)
 i.Cross(*j) // Vector3{0, 0, 1}
 ```
+
+---
+
+## License
+
+[MIT](LICENSE)

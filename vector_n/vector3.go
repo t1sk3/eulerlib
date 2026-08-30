@@ -2,10 +2,14 @@ package vector_n
 
 import "github.com/t1sk3/eulerlib/v2/utils"
 
+// Vector3 is a 3-dimensional vector. It embeds Vector to inherit the
+// element-wise arithmetic operations, and adds named X/Y/Z accessors and the
+// 3D cross product.
 type Vector3[E utils.SignedNumber] struct {
 	Vector[E]
 }
 
+// NewVector3 creates a 3D vector from its x, y, and z components.
 func NewVector3[E utils.SignedNumber](x, y, z E) *Vector3[E] {
 	return &Vector3[E]{Vector[E]{elements: []E{x, y, z}}}
 }
@@ -18,14 +22,25 @@ func AsVector3[E utils.SignedNumber](v *Vector[E]) *Vector3[E] {
 	return &Vector3[E]{*v}
 }
 
+// X returns the x component.
 func (v *Vector3[E]) X() E { return v.elements[0] }
+
+// Y returns the y component.
 func (v *Vector3[E]) Y() E { return v.elements[1] }
+
+// Z returns the z component.
 func (v *Vector3[E]) Z() E { return v.elements[2] }
 
+// SetX sets the x component.
 func (v *Vector3[E]) SetX(x E) { v.elements[0] = x }
+
+// SetY sets the y component.
 func (v *Vector3[E]) SetY(y E) { v.elements[1] = y }
+
+// SetZ sets the z component.
 func (v *Vector3[E]) SetZ(z E) { v.elements[2] = z }
 
+// Cross returns the 3D cross product of v and o.
 func (v *Vector3[E]) Cross(o Vector3[E]) *Vector3[E] {
 	return NewVector3(
 		v.Y()*o.Z()-v.Z()*o.Y(),

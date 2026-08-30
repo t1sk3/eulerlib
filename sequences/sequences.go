@@ -1,3 +1,5 @@
+// Package sequences provides functions for generating numeric sequences,
+// currently the Collatz conjecture sequence.
 package sequences
 
 import (
