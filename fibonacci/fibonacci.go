@@ -1,7 +1,9 @@
-package eulerlib
+package fibonacci
 
 import (
 	"math/big"
+
+	"github.com/t1sk3/eulerlib/utils"
 )
 
 // Generates the Fibonaccisequence
@@ -30,7 +32,7 @@ func Fibonacci(limit int64) (res []int64) {
 // FibonacciSingle returns the nth fibonacci number.
 // The result is the same as the last element of Fibonacci(n)
 // but calculated while using less memory
-func FibonacciSingle[E Integer](n E) int64 {
+func FibonacciSingle[E utils.Integer](n E) int64 {
 	if n < 2 {
 		return int64(n)
 	}

@@ -1,14 +1,17 @@
-package eulerlib
+package num_theory
 
 import (
 	"math"
 	"math/big"
 	"math/bits"
 	"strconv"
+
+	"github.com/t1sk3/eulerlib/etc"
+	"github.com/t1sk3/eulerlib/utils"
 )
 
 // CountDivisors returns the number of divisors the given integer has.
-func CountDivisors[E Integer](n E) E {
+func CountDivisors[E utils.Integer](n E) E {
 	count := E(0)
 	end := E(math.Sqrt(float64(n)))
 	for i := E(1); i <= end; i++ {
@@ -24,7 +27,7 @@ func CountDivisors[E Integer](n E) E {
 }
 
 // returns all divisors of the given integer
-func Divisors[E Integer](n E) []E {
+func Divisors[E utils.Integer](n E) []E {
 	end := E(math.Sqrt(float64(n)))
 	divisors := []E{1}
 
@@ -35,11 +38,11 @@ func Divisors[E Integer](n E) []E {
 		}
 	}
 	divisors = append(divisors, E(n))
-	return RemoveDuplicates(divisors)
+	return etc.RemoveDuplicates(divisors)
 }
 
 // returns a slice with all permutations of the given slice
-func Permutations[E Comparable](arr []E) [][]E {
+func Permutations[E utils.Comparable](arr []E) [][]E {
 	var helper func([]E, int)
 	res := [][]E{}
 
@@ -69,7 +72,7 @@ func Permutations[E Comparable](arr []E) [][]E {
 
 // returns the amount of permutations of the given slice
 func PermutationCount[E comparable](n []E) int {
-	elements := UniqueCount(n)
+	elements := etc.UniqueCount(n)
 	res := Factorial(len(n))
 	for _, v := range elements {
 		res /= Factorial(v)
@@ -78,7 +81,7 @@ func PermutationCount[E comparable](n []E) int {
 }
 
 // Returns all combinations of the elements in the given slice
-func Combinations[E any, F Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
+func Combinations[E any, F utils.Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
 	length := uint(len(set))
 
 	if n > F(len(set)) {
@@ -109,7 +112,7 @@ func Combinations[E any, F Integer](set []E, n F) (subsets [][]E) { // https://g
 }
 
 // Calculates the factorial of the given integer
-func Factorial[E Integer](n E) E {
+func Factorial[E utils.Integer](n E) E {
 	if n == 0 {
 		return 1
 	}
@@ -130,7 +133,7 @@ func FactorialBigInt(n int64) *big.Int {
 }
 
 // Calculates factorial digital sum
-func FactorialDigitSum[E Integer](n E) E {
+func FactorialDigitSum[E utils.Integer](n E) E {
 	s := strconv.Itoa(int(n))
 	res := E(0)
 
@@ -141,7 +144,7 @@ func FactorialDigitSum[E Integer](n E) E {
 	return res
 }
 
-func DigitSum[E Integer](n E) (res E) {
+func DigitSum[E utils.Integer](n E) (res E) {
 
 	for n > 0 {
 		res += n % 10
@@ -164,7 +167,7 @@ func DigitSumString(s string) int64 {
 }
 
 // Gcd calculates the greatest common divisor for the given integers. Panics if no args given.
-func Gcd[E Integer](args ...E) E {
+func Gcd[E utils.Integer](args ...E) E {
 	if len(args) == 0 {
 		panic("Gcd: at least one argument required")
 	}
@@ -175,7 +178,7 @@ func Gcd[E Integer](args ...E) E {
 	return res
 }
 
-func gcd[E Integer](a, b E) E {
+func gcd[E utils.Integer](a, b E) E {
 	for b != 0 {
 		a, b = b, a%b
 	}
@@ -184,7 +187,7 @@ func gcd[E Integer](a, b E) E {
 
 // Factorize returns the prime factorization of n as a map of prime → exponent.
 // Returns an empty map for n <= 1.
-func Factorize[E Integer](n E) map[E]E {
+func Factorize[E utils.Integer](n E) map[E]E {
 	factors := make(map[E]E)
 	for i := E(2); i <= n; i++ {
 		for n%i == 0 {
@@ -224,7 +227,7 @@ func FactorizeBigInt(n *big.Int) [][2]*big.Int {
 }
 
 // Calculates all primefactors of the given number
-func PrimeFactors[E Integer](n E) []E {
+func PrimeFactors[E utils.Integer](n E) []E {
 	primefs := []E{}
 	for n%2 == 0 {
 		primefs = append(primefs, 2)
@@ -246,7 +249,7 @@ func PrimeFactors[E Integer](n E) []E {
 }
 
 // PowMod returns x^y % p. Requires p < 2^31 to avoid int64 overflow during squaring.
-func PowMod[E Integer](x, y, p E) int64 {
+func PowMod[E utils.Integer](x, y, p E) int64 {
 	res := int64(1)
 	xm := int64(x) % int64(p)
 	for y > 0 {
@@ -265,7 +268,7 @@ func ToRadians(n float64) float64 {
 }
 
 // Returns n!/(k!(n-k)!)
-func Binomial[E Integer](n E, k E) *big.Int {
+func Binomial[E utils.Integer](n E, k E) *big.Int {
 	prod := big.NewInt(1)
 	for i := E(0); i < k; i++ {
 		prod.Mul(prod, big.NewInt(int64(n-i)))
@@ -309,7 +312,7 @@ func PrimeFactorsBigInt(n *big.Int) (primefs [][]int64) {
 }
 
 // Pow calculates b^n using integers. Panics for negative n.
-func Pow[E Integer](b E, n E) E {
+func Pow[E utils.Integer](b E, n E) E {
 	if n < 0 {
 		panic("Pow: negative exponent")
 	}
@@ -355,12 +358,12 @@ func PowBigFloat(b *big.Float, n int64) *big.Float {
 }
 
 // Checks whether the given number is a power of 2
-func IsPowerOfTwo[E Integer](n E) bool {
+func IsPowerOfTwo[E utils.Integer](n E) bool {
 	return n > 0 && n&(n-1) == 0
 }
 
 // Checks whether or not the given number is a perfect square
-func IsSquare[E Integer](n E) bool {
+func IsSquare[E utils.Integer](n E) bool {
 	if n < 0 {
 		return false
 	}
@@ -384,11 +387,11 @@ func IsSquare[E Integer](n E) bool {
 	return s*s == n
 }
 
-func FloatIsInteger[E Float](n E) bool {
+func FloatIsInteger[E utils.Float](n E) bool {
 	return E(math.Floor(float64(n))) == n
 }
 
-func Lcm[E Integer](nums ...E) E {
+func Lcm[E utils.Integer](nums ...E) E {
 	res := E(1)
 	for _, v := range nums {
 		res = res * v / Gcd(res, v)
@@ -399,7 +402,7 @@ func Lcm[E Integer](nums ...E) E {
 // Lcd is deprecated. Use Lcm instead.
 //
 // Deprecated: Use Lcm.
-func Lcd[E Integer](nums ...E) E {
+func Lcd[E utils.Integer](nums ...E) E {
 	return Lcm(nums...)
 }
 
@@ -428,12 +431,12 @@ func ReduceWithInit[E any](initial E, nums []E, f func(E, E) E) E {
 // MaxInSlice returns the maximum value in the given slice.
 //
 // Deprecated: Use Max instead.
-func MaxInSlice[E Integer](nums []E) E {
-	return Max(nums...)
+func MaxInSlice[E utils.Integer](nums []E) E {
+	return etc.Max(nums...)
 }
 
 // SumDivisors returns the sum of proper divisors of n (all divisors excluding n itself).
-func SumDivisors[E Integer](n E) E {
+func SumDivisors[E utils.Integer](n E) E {
 	if n <= 1 {
 		return 0
 	}
@@ -451,22 +454,22 @@ func SumDivisors[E Integer](n E) E {
 }
 
 // IsAbundant returns true if the sum of proper divisors of n exceeds n.
-func IsAbundant[E Integer](n E) bool {
+func IsAbundant[E utils.Integer](n E) bool {
 	return SumDivisors(n) > n
 }
 
 // IsDeficient returns true if the sum of proper divisors of n is less than n.
-func IsDeficient[E Integer](n E) bool {
+func IsDeficient[E utils.Integer](n E) bool {
 	return SumDivisors(n) < n
 }
 
 // IsPerfect returns true if the sum of proper divisors of n equals n.
-func IsPerfect[E Integer](n E) bool {
+func IsPerfect[E utils.Integer](n E) bool {
 	return SumDivisors(n) == n
 }
 
 // IsAmicable returns true if SumDivisors(SumDivisors(a)) == a and SumDivisors(a) != a.
-func IsAmicable[E Integer](a E) bool {
+func IsAmicable[E utils.Integer](a E) bool {
 	b := SumDivisors(a)
 	return b != a && SumDivisors(b) == a
 }

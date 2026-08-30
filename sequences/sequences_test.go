@@ -1,4 +1,4 @@
-package eulerlib
+package sequences
 
 import "testing"
 

@@ -1,4 +1,4 @@
-package eulerlib
+package etc
 
 import (
 	"os"
@@ -7,10 +7,12 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/t1sk3/eulerlib/utils"
 )
 
 // Checks whether the given integer is pandigital in base 10
-func IsPandigital[E Integer](n E) bool {
+func IsPandigital[E utils.Integer](n E) bool {
 	digits := make(map[E]bool)
 	for n > 0 {
 		digits[n%10] = true
@@ -25,7 +27,7 @@ func IsPandigital[E Integer](n E) bool {
 }
 
 // Checks whether the given integer is pandigital in the given base
-func IsPandigitalInBaseString[E Integer](s string, b E) bool {
+func IsPandigitalInBaseString[E utils.Integer](s string, b E) bool {
 	digits := make(map[E]bool)
 	for _, e := range s {
 		d, _ := strconv.Atoi(string(e))
@@ -44,7 +46,7 @@ func IsPandigitalInBaseString[E Integer](s string, b E) bool {
 
 // Checks whether the given integer is pandigital in the given base
 // It converts the integer to the given base and then checks whether it is pandigital
-func IsPandigitalInBase[E Integer](n E, b E) bool {
+func IsPandigitalInBase[E utils.Integer](n E, b E) bool {
 	if b > 36 {
 		return false
 	}
@@ -52,7 +54,7 @@ func IsPandigitalInBase[E Integer](n E, b E) bool {
 }
 
 // creates a slice containing all digits of the given integer as individual integers
-func MakeIntSlice[E Integer](n E) []E {
+func MakeIntSlice[E utils.Integer](n E) []E {
 	res := []E{}
 	n_string := DecimalToBase(n, 10)
 	var temp int
@@ -73,7 +75,7 @@ func IsPalindrome(s string) bool {
 }
 
 // returns the minimum of all given numbers
-func Min[E RealNumber](numbers ...E) E {
+func Min[E utils.RealNumber](numbers ...E) E {
 	if len(numbers) == 0 {
 		panic("at least one number is required in Min[E]")
 	}
@@ -87,7 +89,7 @@ func Min[E RealNumber](numbers ...E) E {
 }
 
 // returns the maximum of all given numbers
-func Max[E RealNumber](numbers ...E) E {
+func Max[E utils.RealNumber](numbers ...E) E {
 	if len(numbers) == 0 {
 		panic("at least one number is required in Max[E]")
 	}
@@ -101,7 +103,7 @@ func Max[E RealNumber](numbers ...E) E {
 }
 
 // joins a slice of integers into a single string
-func JoinSlice[E Integer](s []E) string {
+func JoinSlice[E utils.Integer](s []E) string {
 	res := ""
 	for _, e := range s {
 		res += strconv.Itoa(int(e))
@@ -115,7 +117,7 @@ func JoinSliceString(s []string) string {
 }
 
 // removes any duplicates fm a slice
-func RemoveDuplicates[E Comparable](s []E) []E {
+func RemoveDuplicates[E utils.Comparable](s []E) []E {
 	res := []E{}
 	keys := make(map[E]bool)
 
@@ -165,7 +167,7 @@ func RemoveDuplicateSlices(s [][]string) (res [][]string) {
 }
 
 // returns the sum of the integers in the given slice
-func Sum[E Number](lst []E) E {
+func Sum[E utils.Number](lst []E) E {
 	res := E(0)
 	for _, element := range lst {
 		res += element
@@ -174,7 +176,7 @@ func Sum[E Number](lst []E) E {
 }
 
 // Product returns the product of all elements in lst. Returns 1 for an empty slice.
-func Product[E Number](lst []E) E {
+func Product[E utils.Number](lst []E) E {
 	res := E(1)
 	for _, element := range lst {
 		res *= element
@@ -184,7 +186,7 @@ func Product[E Number](lst []E) E {
 
 // DecimalToBase converts n to base b (2..62) and returns the result as a string.
 // Returns "0" for n==0, prepends "-" for negative n, returns "" for invalid base.
-func DecimalToBase[E Integer, F Integer](n E, b F) (res string) {
+func DecimalToBase[E utils.Integer, F utils.Integer](n E, b F) (res string) {
 	alphabet := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	n64 := int64(n)
 	b64 := int64(b)
@@ -219,7 +221,7 @@ func ReverseString(s string) string {
 }
 
 // Counts the occurence of a given in a slice
-func CountOccurrenceInSlice[E RealNumber](s []E, p E) (res E) {
+func CountOccurrenceInSlice[E utils.RealNumber](s []E, p E) (res E) {
 	for _, e := range s {
 		if e == p {
 			res++
@@ -229,12 +231,12 @@ func CountOccurrenceInSlice[E RealNumber](s []E, p E) (res E) {
 }
 
 // Removes element from slice at index
-func RemoveFromSlice[E RealNumber](slice []E, s int) []E {
+func RemoveFromSlice[E utils.RealNumber](slice []E, s int) []E {
 	return append(slice[:s], slice[s+1:]...)
 }
 
 // Totient returns Euler's totient φ(n): the count of integers in [1,n] coprime to n.
-func Totient[E Integer](n E) E {
+func Totient[E utils.Integer](n E) E {
 	res := n
 	for i := E(2); i*i <= n; i++ {
 		if n%i == 0 {
@@ -252,7 +254,7 @@ func Totient[E Integer](n E) E {
 
 // ListTotients returns a slice of length n+1 where res[i] = φ(i) for i in [0,n].
 // Uses a sieve for O(n log log n) performance.
-func ListTotients[E Integer](n E) []E {
+func ListTotients[E utils.Integer](n E) []E {
 	res := make([]E, n+1)
 	for i := E(0); i <= n; i++ {
 		res[i] = i
@@ -269,7 +271,7 @@ func ListTotients[E Integer](n E) []E {
 
 // Range returns a slice from start (inclusive) to stop (exclusive), stepping by 1.
 // If start > stop, it counts down.
-func Range[E RealNumber](start, stop E) (res []E) {
+func Range[E utils.RealNumber](start, stop E) (res []E) {
 	if start < stop {
 		for i := start; i < stop; i++ {
 			res = append(res, i)
@@ -284,7 +286,7 @@ func Range[E RealNumber](start, stop E) (res []E) {
 }
 
 // Returns a slice of integers from start to stop with the given step
-func RangeStep[E RealNumber](start, stop, step E) (res []E) {
+func RangeStep[E utils.RealNumber](start, stop, step E) (res []E) {
 	if step == 0 {
 		return
 	}
@@ -301,7 +303,7 @@ func RangeStep[E RealNumber](start, stop, step E) (res []E) {
 }
 
 // Checks whether the given slice contains the given element
-func SliceContains[E Comparable](s []E, e E) bool {
+func SliceContains[E utils.Comparable](s []E, e E) bool {
 	return slices.Contains(s, e)
 }
 
@@ -315,7 +317,7 @@ func SliceContainsAny[E any](s []E, e E, f func(E, E) bool) bool {
 }
 
 // generates a slice of length n with all elements set to the given value
-func GenerateSlice[E Integer, F Comparable](n E, value F) (res []F) {
+func GenerateSlice[E utils.Integer, F utils.Comparable](n E, value F) (res []F) {
 	for i := E(0); i < n; i++ {
 		res = append(res, value)
 	}
@@ -402,7 +404,7 @@ func FileExists(name string) bool {
 }
 
 // Abs returns the absolute value of n.
-func Abs[E SignedInteger](n E) E {
+func Abs[E utils.SignedInteger](n E) E {
 	if n < 0 {
 		return -n
 	}
@@ -410,12 +412,12 @@ func Abs[E SignedInteger](n E) E {
 }
 
 // SumOfSquares returns 1² + 2² + ... + n².
-func SumOfSquares[E Integer](n E) E {
+func SumOfSquares[E utils.Integer](n E) E {
 	return n * (n + 1) * (2*n + 1) / 6
 }
 
 // SquareOfSum returns (1 + 2 + ... + n)².
-func SquareOfSum[E Integer](n E) E {
+func SquareOfSum[E utils.Integer](n E) E {
 	s := n * (n + 1) / 2
 	return s * s
 }

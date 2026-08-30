@@ -1,10 +1,13 @@
-package eulerlib
+package prime_numbers
 
 import (
 	"math"
+
+	"github.com/t1sk3/eulerlib/etc"
+	"github.com/t1sk3/eulerlib/utils"
 )
 
-type PrimeNumberIterator[E Integer] struct {
+type PrimeNumberIterator[E utils.Integer] struct {
 	current E
 }
 
@@ -27,7 +30,7 @@ func (p *PrimeNumberIterator[E]) Reset() {
 
 // function that returns a new prime number iterator with an optional starting point, only one argument is allowed
 // if no arguments are given, the iterator starts at 0 and a type must be specified
-func NewPrimeNumberIterator[E Integer](params ...E) *PrimeNumberIterator[E] {
+func NewPrimeNumberIterator[E utils.Integer](params ...E) *PrimeNumberIterator[E] {
 	if len(params) > 1 {
 		panic("Too many arguments")
 	}
@@ -38,7 +41,7 @@ func NewPrimeNumberIterator[E Integer](params ...E) *PrimeNumberIterator[E] {
 }
 
 // checks to see if the given number is a prime
-func IsPrime[E Integer](p E) bool {
+func IsPrime[E utils.Integer](p E) bool {
 	end := E(math.Sqrt(float64(p)))
 	if end*end == p {
 		return false
@@ -59,7 +62,7 @@ func IsPrime[E Integer](p E) bool {
 }
 
 // Returns a slice where at every index the boolean in that place indicates whether or not the index is a prime number
-func ListPrimality[E Integer](n E) []bool {
+func ListPrimality[E utils.Integer](n E) []bool {
 	if n < 0 {
 		panic("n must be positive")
 	}
@@ -70,7 +73,7 @@ func ListPrimality[E Integer](n E) []bool {
 		return []bool{false}
 	}
 
-	res := GenerateSlice(n+1, true)
+	res := etc.GenerateSlice(n+1, true)
 	res[0] = false
 	res[1] = false
 
@@ -85,7 +88,7 @@ func ListPrimality[E Integer](n E) []bool {
 }
 
 // Lists all primes up to n
-func ListPrimes[E Integer](n E) (res []E) {
+func ListPrimes[E utils.Integer](n E) (res []E) {
 	for i, p := range ListPrimality(n) {
 		if p {
 			res = append(res, E(i))
@@ -95,7 +98,7 @@ func ListPrimes[E Integer](n E) (res []E) {
 }
 
 // Returns a generator that generates prime numbers
-func PrimeGenerator[E Integer](limit E) <-chan E {
+func PrimeGenerator[E utils.Integer](limit E) <-chan E {
 	chnl := make(chan E)
 	p := NewPrimeNumberIterator[E]()
 	go func() {
@@ -108,7 +111,7 @@ func PrimeGenerator[E Integer](limit E) <-chan E {
 }
 
 // Returns the next prime after n
-func NextPrime[E Integer](n E) E {
+func NextPrime[E utils.Integer](n E) E {
 	if n < 2 {
 		return 2
 	}
@@ -128,7 +131,7 @@ func NextPrime[E Integer](n E) E {
 }
 
 // Sums primes between s and e
-func SumPrimes[E Integer](s E, e E) (res E) {
+func SumPrimes[E utils.Integer](s E, e E) (res E) {
 	current := NextPrime(s - 1)
 	if current > e {
 		return 0
@@ -146,7 +149,7 @@ func SumPrimes[E Integer](s E, e E) (res E) {
 }
 
 // Counts how many primes exist between s and e
-func PrimeCount[E Integer](s E, e E) (res E) {
+func PrimeCount[E utils.Integer](s E, e E) (res E) {
 	for i := s; i <= e; i++ {
 		if IsPrime(i) {
 			res += 1
@@ -156,7 +159,7 @@ func PrimeCount[E Integer](s E, e E) (res E) {
 }
 
 // Returns the first n prime numbers
-func FirstNPrimes[E Integer](n E) []E {
+func FirstNPrimes[E utils.Integer](n E) []E {
 	res := make([]E, n)
 	p := NewPrimeNumberIterator[E]()
 	for i := E(0); i < n; i++ {

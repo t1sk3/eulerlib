@@ -1,4 +1,4 @@
-package eulerlib
+package utils
 
 import (
 	"reflect"

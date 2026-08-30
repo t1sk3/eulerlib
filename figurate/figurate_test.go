@@ -1,4 +1,4 @@
-package eulerlib
+package figurate
 
 import "testing"
 

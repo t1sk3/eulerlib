@@ -1,4 +1,4 @@
-package eulerlib
+package prime_numbers
 
 import (
 	"testing"

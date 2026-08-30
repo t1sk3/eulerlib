@@ -1,9 +1,11 @@
-package eulerlib
+package num_theory
 
 import (
 	"math/big"
 	"strconv"
 	"testing"
+
+	"github.com/t1sk3/eulerlib/etc"
 )
 
 func TestFactorial(t *testing.T) {
@@ -106,7 +108,7 @@ func TestIsPalindrome(t *testing.T) {
 	want := []bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true,
 		true, true, true, true, true, true, true, true, true, true, true}
 	for i, num := range testNums {
-		got := IsPalindrome(strconv.Itoa(num))
+		got := etc.IsPalindrome(strconv.Itoa(num))
 		if got != want[i] {
 			t.Errorf("IsPalindrome(%d) == %t, want %t", num, got, want[i])
 		}
@@ -128,7 +130,7 @@ func TestMax(t *testing.T) {
 	testNums := [][]int{{1, 2}, {2, 4}, {12, 15}, {2, 1}, {4, 2}, {15, 12}}
 	want := []int{2, 4, 15, 2, 4, 15}
 	for i, num := range testNums {
-		got := Max(num[0], num[1])
+		got := etc.Max(num[0], num[1])
 		if got != want[i] {
 			t.Errorf("Max(%d) == %d, want %d", num, got, want[i])
 		}
@@ -139,7 +141,7 @@ func TestJoinSlice(t *testing.T) {
 	testNums := [][]int{{1, 2, 3, 4, 5}, {2, 4, 6, 8, 10}, {12, 15, 18, 21, 24}}
 	want := []string{"12345", "246810", "1215182124"}
 	for i, num := range testNums {
-		got := JoinSlice(num)
+		got := etc.JoinSlice(num)
 		if got != want[i] {
 			t.Errorf("JoinSlice(%d) == %s, want %s", num, got, want[i])
 		}
@@ -150,7 +152,7 @@ func TestMakeIntSlice(t *testing.T) {
 	testNums := []int{12345, 246810, 1215182124}
 	want := [][]int{{1, 2, 3, 4, 5}, {2, 4, 6, 8, 1, 0}, {1, 2, 1, 5, 1, 8, 2, 1, 2, 4}}
 	for i, num := range testNums {
-		got := MakeIntSlice(num)
+		got := etc.MakeIntSlice(num)
 		for j, e := range got {
 			if e != want[i][j] {
 				t.Errorf("MakeIntSlice(%d) == %d, want %d", num, got, want[i])
@@ -163,7 +165,7 @@ func TestIsPandigital(t *testing.T) {
 	testNums := []int64{12345, 246810, 1215182124, 123456789, 1234567890, 12345678901}
 	want := []bool{false, false, false, true, true, true}
 	for i, num := range testNums {
-		got := IsPandigital(num)
+		got := etc.IsPandigital(num)
 		if got != want[i] {
 			t.Errorf("IsPandigital(%d) == %t, want %t", num, got, want[i])
 		}
@@ -219,7 +221,7 @@ func TestTotient(t *testing.T) {
 	testNums := []int64{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	want := []int64{1, 1, 2, 2, 4, 2, 6, 4, 6}
 	for i, num := range testNums {
-		got := Totient(num)
+		got := etc.Totient(num)
 		if got != want[i] {
 			t.Errorf("Totient(%d) == %d, want %d", num, got, want[i])
 		}

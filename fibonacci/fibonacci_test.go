@@ -1,8 +1,10 @@
-package eulerlib
+package fibonacci
 
 import (
 	"math/big"
 	"testing"
+
+	"github.com/t1sk3/eulerlib/num_theory"
 )
 
 func collectInt64(ch <-chan int64) []int64 {
@@ -110,7 +112,7 @@ func TestFibonacciSingleBigPrecision(t *testing.T) {
 
 func TestPowBigFloat(t *testing.T) {
 	base := big.NewFloat(3)
-	got := PowBigFloat(base, 4)
+	got := num_theory.PowBigFloat(base, 4)
 	f, _ := got.Float64()
 	if f != 81 {
 		t.Fatalf("PowBigFloat(3, 4) = %v, want 81", f)

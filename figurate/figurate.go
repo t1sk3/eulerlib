@@ -1,15 +1,19 @@
-package eulerlib
+package figurate
 
-import "math"
+import (
+	"math"
+
+	"github.com/t1sk3/eulerlib/utils"
+)
 
 // NthTriangular returns the nth triangular number: n*(n+1)/2.
-func NthTriangular[E Integer](n E) E {
+func NthTriangular[E utils.Integer](n E) E {
 	return n * (n + 1) / 2
 }
 
 // IsTriangular returns true if n is a triangular number.
 // A number t is triangular iff 8t+1 is a perfect square.
-func IsTriangular[E Integer](n E) bool {
+func IsTriangular[E utils.Integer](n E) bool {
 	if n < 0 {
 		return false
 	}
@@ -23,13 +27,13 @@ func IsTriangular[E Integer](n E) bool {
 }
 
 // NthPentagonal returns the nth pentagonal number: n*(3n-1)/2.
-func NthPentagonal[E Integer](n E) E {
+func NthPentagonal[E utils.Integer](n E) E {
 	return n * (3*n - 1) / 2
 }
 
 // IsPentagonal returns true if n is a pentagonal number.
 // A number p is pentagonal iff (1+sqrt(1+24p))/6 is a positive integer.
-func IsPentagonal[E Integer](n E) bool {
+func IsPentagonal[E utils.Integer](n E) bool {
 	if n < 0 {
 		return false
 	}
@@ -46,13 +50,13 @@ func IsPentagonal[E Integer](n E) bool {
 }
 
 // NthHexagonal returns the nth hexagonal number: n*(2n-1).
-func NthHexagonal[E Integer](n E) E {
+func NthHexagonal[E utils.Integer](n E) E {
 	return n * (2*n - 1)
 }
 
 // IsHexagonal returns true if n is a hexagonal number.
 // A number h is hexagonal iff (1+sqrt(1+8h))/4 is a positive integer.
-func IsHexagonal[E Integer](n E) bool {
+func IsHexagonal[E utils.Integer](n E) bool {
 	if n < 0 {
 		return false
 	}
