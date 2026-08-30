@@ -36,21 +36,21 @@ func (v *Vector[E]) Swap(i, j int) {
 
 func (v *Vector[E]) Add(o Vector[E]) *Vector[E] {
 	v.mustMatch(o)
-	var elements []E
+	elements := make([]E, v.Len())
 	for i := range v.elements {
-		elements = append(elements, v.elements[i]+o.elements[i])
+		elements[i] = v.elements[i] + o.elements[i]
 	}
 
-	return NewVector(elements)
+	return &Vector[E]{elements: elements}
 }
 
 func (v *Vector[E]) Sub(o Vector[E]) *Vector[E] {
 	v.mustMatch(o)
-	var elements []E
+	elements := make([]E, v.Len())
 	for i := range v.elements {
-		elements = append(elements, v.elements[i]-o.elements[i])
+		elements[i] = v.elements[i] - o.elements[i]
 	}
-	return NewVector(elements)
+	return &Vector[E]{elements: elements}
 }
 
 func (v *Vector[E]) Dot(o Vector[E]) E {
@@ -64,20 +64,20 @@ func (v *Vector[E]) Dot(o Vector[E]) E {
 
 func (v *Vector[E]) Mul(o Vector[E]) *Vector[E] {
 	v.mustMatch(o)
-	var elements []E
+	elements := make([]E, v.Len())
 	for i := range v.elements {
-		elements = append(elements, v.elements[i]*o.elements[i])
+		elements[i] = v.elements[i] * o.elements[i]
 	}
-	return NewVector(elements)
+	return &Vector[E]{elements: elements}
 }
 
 func (v *Vector[E]) Div(o Vector[E]) *Vector[E] {
 	v.mustMatch(o)
-	var elements []E
+	elements := make([]E, v.Len())
 	for i := range v.elements {
-		elements = append(elements, v.elements[i]/o.elements[i])
+		elements[i] = v.elements[i] / o.elements[i]
 	}
-	return NewVector(elements)
+	return &Vector[E]{elements: elements}
 }
 
 func (v *Vector[E]) mustMatch(o Vector[E]) {
