@@ -26,7 +26,7 @@ func CountDivisors[E utils.Integer](n E) E {
 	return count
 }
 
-// returns all divisors of the given integer
+// Divisors returns all divisors of the given integer
 func Divisors[E utils.Integer](n E) []E {
 	end := E(math.Sqrt(float64(n)))
 	divisors := []E{1}
@@ -41,7 +41,7 @@ func Divisors[E utils.Integer](n E) []E {
 	return etc.RemoveDuplicates(divisors)
 }
 
-// returns a slice with all permutations of the given slice
+// Permutations returns a slice with all permutations of the given slice
 func Permutations[E utils.Comparable](arr []E) [][]E {
 	var helper func([]E, int)
 	res := [][]E{}
@@ -70,7 +70,7 @@ func Permutations[E utils.Comparable](arr []E) [][]E {
 	return res
 }
 
-// returns the amount of permutations of the given slice
+// PermutationCount returns the amount of permutations of the given slice
 func PermutationCount[E comparable](n []E) int {
 	elements := etc.UniqueCount(n)
 	res := Factorial(len(n))
@@ -80,7 +80,7 @@ func PermutationCount[E comparable](n []E) int {
 	return res
 }
 
-// Returns all combinations of the elements in the given slice
+// Combinations Returns all combinations of the elements in the given slice
 func Combinations[E any, F utils.Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
 	length := uint(len(set))
 
@@ -111,7 +111,7 @@ func Combinations[E any, F utils.Integer](set []E, n F) (subsets [][]E) { // htt
 	return subsets
 }
 
-// Calculates the factorial of the given integer
+// Factorial Calculates the factorial of the given integer
 func Factorial[E utils.Integer](n E) E {
 	if n == 0 {
 		return 1
@@ -123,7 +123,7 @@ func Factorial[E utils.Integer](n E) E {
 	return res
 }
 
-// Return the factorial as a Big Integer
+// FactorialBigInt Return the factorial as a Big Integer
 func FactorialBigInt(n int64) *big.Int {
 	res := big.NewInt(1)
 	for i := n; i > 1; i-- {
@@ -132,7 +132,7 @@ func FactorialBigInt(n int64) *big.Int {
 	return res
 }
 
-// Calculates factorial digital sum
+// FactorialDigitSum Calculates factorial digital sum
 func FactorialDigitSum[E utils.Integer](n E) E {
 	s := strconv.Itoa(int(n))
 	res := E(0)
