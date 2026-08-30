@@ -148,7 +148,8 @@ Requires **Go 1.23+**.
 | `v2.Cross(o)` | Perp-dot product (z-component of the 3D cross product) — `Vector2` only |
 | `v2.Perp()` | Returns the perpendicular vector `(-y, x)` — `Vector2` only |
 | `v3.Cross(o)` | 3D cross product, returns a new `Vector3` |
-| `v.Add(o)`, `v.Sub(o)` | Element-wise addition/subtraction, returns the same dimension type |
+| `v2.Add(o)`, `v2.Sub(o)` | Element-wise addition/subtraction, returns the same dimension type |
+| `v3.Add(o)` | Element-wise addition, returns the same dimension type |
 
 ### Slice Utilities
 
