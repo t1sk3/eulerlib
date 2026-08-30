@@ -128,11 +128,11 @@ Requires **Go 1.23+**.
 | `v.Set(i, e)` | Sets the element at index i |
 | `v.Elements()` | Returns a copy of the underlying elements as a slice |
 | `v.Swap(i, j)` | Swaps the elements at indices i and j |
-| `v.Add(o)` | Element-wise addition, returns a new vector |
-| `v.Sub(o)` | Element-wise subtraction, returns a new vector |
-| `v.Mul(o)` | Element-wise multiplication, returns a new vector |
-| `v.Div(o)` | Element-wise division, returns a new vector |
-| `v.Dot(o)` | Dot product of two vectors |
+| `v.Add(o)` | Element-wise addition, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Sub(o)` | Element-wise subtraction, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Mul(o)` | Element-wise multiplication, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Div(o)` | Element-wise division, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
+| `v.Dot(o)` | Dot product of two vectors (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
 
 #### Vector2 / Vector3
 
