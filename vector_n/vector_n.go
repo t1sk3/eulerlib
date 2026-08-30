@@ -1,6 +1,6 @@
 package vector_n
 
-import "github.com/t1sk3/eulerlib/utils"
+import "github.com/t1sk3/eulerlib/v2/utils"
 
 type Vector[E utils.Number] struct {
 	elements []E

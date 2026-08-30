@@ -1,7 +1,7 @@
 package pythagoras
 
 import (
-	"github.com/t1sk3/eulerlib/utils"
+	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
 // checks if the given triplet is a pythagorean triplet

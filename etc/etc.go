@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/t1sk3/eulerlib/utils"
+	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
 // Checks whether the given integer is pandigital in base 10

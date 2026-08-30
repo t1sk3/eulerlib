@@ -3,7 +3,7 @@
 A generic Go library of number-theory utilities for solving [Project Euler](https://projecteuler.net/) problems. All functions are generic over Go's built-in numeric types via type constraints.
 
 ```
-go get github.com/t1sk3/eulerlib
+go get github.com/t1sk3/eulerlib/v2
 ```
 
 Requires **Go 1.23+**.

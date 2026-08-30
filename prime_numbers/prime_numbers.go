@@ -3,8 +3,8 @@ package prime_numbers
 import (
 	"math"
 
-	"github.com/t1sk3/eulerlib/etc"
-	"github.com/t1sk3/eulerlib/utils"
+	"github.com/t1sk3/eulerlib/v2/etc"
+	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
 type PrimeNumberIterator[E utils.Integer] struct {

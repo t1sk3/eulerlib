@@ -3,7 +3,7 @@ package figurate
 import (
 	"math"
 
-	"github.com/t1sk3/eulerlib/utils"
+	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
 // NthTriangular returns the nth triangular number: n*(n+1)/2.

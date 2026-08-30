@@ -6,8 +6,8 @@ import (
 	"math/bits"
 	"strconv"
 
-	"github.com/t1sk3/eulerlib/etc"
-	"github.com/t1sk3/eulerlib/utils"
+	"github.com/t1sk3/eulerlib/v2/etc"
+	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
 // CountDivisors returns the number of divisors the given integer has.

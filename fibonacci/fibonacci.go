@@ -3,7 +3,7 @@ package fibonacci
 import (
 	"math/big"
 
-	"github.com/t1sk3/eulerlib/utils"
+	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
 // Generates the Fibonaccisequence

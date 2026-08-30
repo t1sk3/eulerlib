@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/t1sk3/eulerlib/etc"
+	"github.com/t1sk3/eulerlib/v2/etc"
 )
 
 func TestFactorial(t *testing.T) {

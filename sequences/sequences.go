@@ -1,7 +1,7 @@
 package sequences
 
 import (
-	"github.com/t1sk3/eulerlib/utils"
+	"github.com/t1sk3/eulerlib/v2/utils"
 )
 
 // Collatz returns the full Collatz sequence starting from n until it reaches 1.
