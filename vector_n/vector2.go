@@ -39,3 +39,13 @@ func (v *Vector2[E]) Add(o Vector2[E]) *Vector2[E] {
 func (v *Vector2[E]) Sub(o Vector2[E]) *Vector2[E] {
 	return &Vector2[E]{*v.Vector.Sub(o.Vector)}
 }
+
+// Mul shadows the promoted Vector.Mul so chaining stays in Vector2.
+func (v *Vector2[E]) Mul(o Vector2[E]) *Vector2[E] {
+	return &Vector2[E]{*v.Vector.Mul(o.Vector)}
+}
+
+// Div shadows the promoted Vector.Div so chaining stays in Vector2.
+func (v *Vector2[E]) Div(o Vector2[E]) *Vector2[E] {
+	return &Vector2[E]{*v.Vector.Div(o.Vector)}
+}

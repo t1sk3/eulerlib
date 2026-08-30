@@ -48,11 +48,48 @@ func TestVector3CrossSelfIsZero(t *testing.T) {
 	}
 }
 
+func TestVector3SetXSetYSetZ(t *testing.T) {
+	v := NewVector3(1, 2, 3)
+	v.SetX(10)
+	v.SetY(20)
+	v.SetZ(30)
+	if v.X() != 10 || v.Y() != 20 || v.Z() != 30 {
+		t.Fatalf("after SetX/SetY/SetZ = (%d, %d, %d), want (10, 20, 30)", v.X(), v.Y(), v.Z())
+	}
+}
+
 func TestVector3Add(t *testing.T) {
 	a := NewVector3(1, 2, 3)
 	b := NewVector3(4, 5, 6)
 	got := a.Add(*b)
 	if got.X() != 5 || got.Y() != 7 || got.Z() != 9 {
 		t.Fatalf("Add() = (%d, %d, %d), want (5, 7, 9)", got.X(), got.Y(), got.Z())
+	}
+}
+
+func TestVector3Sub(t *testing.T) {
+	a := NewVector3(5, 7, 9)
+	b := NewVector3(1, 2, 3)
+	got := a.Sub(*b)
+	if got.X() != 4 || got.Y() != 5 || got.Z() != 6 {
+		t.Fatalf("Sub() = (%d, %d, %d), want (4, 5, 6)", got.X(), got.Y(), got.Z())
+	}
+}
+
+func TestVector3Mul(t *testing.T) {
+	a := NewVector3(2, 3, 4)
+	b := NewVector3(5, 6, 7)
+	got := a.Mul(*b)
+	if got.X() != 10 || got.Y() != 18 || got.Z() != 28 {
+		t.Fatalf("Mul() = (%d, %d, %d), want (10, 18, 28)", got.X(), got.Y(), got.Z())
+	}
+}
+
+func TestVector3Div(t *testing.T) {
+	a := NewVector3(10, 20, 30)
+	b := NewVector3(2, 5, 3)
+	got := a.Div(*b)
+	if got.X() != 5 || got.Y() != 4 || got.Z() != 10 {
+		t.Fatalf("Div() = (%d, %d, %d), want (5, 4, 10)", got.X(), got.Y(), got.Z())
 	}
 }
