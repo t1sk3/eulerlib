@@ -30,7 +30,7 @@ vector_n.NewVector([]int{1, 2, 3}) // *Vector[int]
 | `figurate` | `.../v2/figurate` | Triangular, pentagonal, and hexagonal numbers |
 | `sequences` | `.../v2/sequences` | Collatz sequence and length |
 | `pythagoras` | `.../v2/pythagoras` | Pythagorean triplet check |
-| `vector_n` | `.../v2/vector_n` | N-dimensional, 2D, and 3D vector arithmetic |
+| `vector_n` | `.../v2/vector_n` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
 | `etc` | `.../v2/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
 | `utils` | `.../v2/utils` | Generic type constraints (`Integer`, `Float`, `Number`, ...) and reflection-based type checks |
 
@@ -172,6 +172,21 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `v2.Perp()` | Returns the perpendicular vector `(-y, x)` — `Vector2` only |
 | `v3.Cross(o)` | 3D cross product, returns a new `Vector3` |
 | `v.Add(o)`, `v.Sub(o)`, `v.Mul(o)`, `v.Div(o)` | Element-wise arithmetic (`o` is a value; pass `*other` if you have a pointer), returns the same dimension type (`Vector2` and `Vector3`) |
+
+#### Coordinate operations
+
+`HexCoordinate[E]` is a point in axial hexagonal coordinates (q, r); it embeds `Vector2[E]` and adds `Q()`/`R()`/`S()` accessors.
+
+| Function | Description |
+|---|---|
+| `AreColinear(p1, p2)` | True if `p1`, `p2`, and the origin lie on a common line (perp-dot product is zero) |
+| `NewHexCoordinate(q, r)` | Creates an axial hex coordinate |
+| `h.Q()`, `h.R()` | Axial coordinate accessors (aliases for the inherited `X()`/`Y()`) |
+| `h.S()` | Third cube coordinate, `s = -q-r` |
+| `HexAreColinear(p1, p2)` | True if `p1`, `p2`, and the origin lie on a common line on the hex grid |
+| `CartesianToHex(p)` | Converts a cartesian point to fractional axial hex coordinates (unit-size, pointy-top hexagons; requires `Float`) |
+| `HexToCartesian(h)` | Converts axial hex coordinates to a cartesian point (inverse of `CartesianToHex`; requires `Float`) |
+| `RoundHex(h)` | Rounds fractional axial hex coordinates to the nearest hex cell (requires `Float`) |
 
 ### Slice Utilities — `etc`
 
