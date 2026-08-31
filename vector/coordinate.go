@@ -51,6 +51,46 @@ func HexAreColinear[E utils.SignedInteger](p1, p2, p3 HexCoordinate[E]) bool {
 	return AreColinear(p1.Vector2, p2.Vector2, p3.Vector2)
 }
 
+// Quadrant returns the standard 1–4 quadrant number for p (I: x>0, y>0;
+// II: x<0, y>0; III: x<0, y<0; IV: x>0, y<0), or 0 if p lies on either axis
+// (x == 0 or y == 0), since axis points belong to no quadrant.
+func Quadrant[E utils.SignedInteger](p Vector2[E]) int {
+	switch {
+	case p.X() == 0 || p.Y() == 0:
+		return 0
+	case p.X() > 0 && p.Y() > 0:
+		return 1
+	case p.X() < 0 && p.Y() > 0:
+		return 2
+	case p.X() < 0 && p.Y() < 0:
+		return 3
+	default:
+		return 4
+	}
+}
+
+// SameQuadrant reports whether p1 and p2 lie in the same one of the four
+// standard quadrants. Points on an axis (x == 0 or y == 0) belong to no
+// quadrant, so SameQuadrant is false whenever either point lies on an
+// axis — even if p1 and p2 are equal.
+func SameQuadrant[E utils.SignedInteger](p1, p2 Vector2[E]) bool {
+	q := Quadrant(p1)
+	return q != 0 && q == Quadrant(p2)
+}
+
+// HexSameQuadrant reports whether p1 and p2 lie in the same quadrant of the
+// (q, r) axial coordinate system, using the same convention as
+// SameQuadrant.
+//
+// Unlike HexAreColinear, this is not a statement about the corresponding
+// cartesian points: the axial axes are skewed 60° apart rather than
+// orthogonal, so the axial quadrants do not coincide with the cartesian
+// ones under HexToCartesian. It is a partition of the hex grid in its own
+// right.
+func HexSameQuadrant[E utils.SignedInteger](p1, p2 HexCoordinate[E]) bool {
+	return SameQuadrant(p1.Vector2, p2.Vector2)
+}
+
 // CartesianToHex converts a cartesian point to fractional axial hex
 // coordinates, assuming unit-size (circumradius 1), pointy-top hexagons
 // centered on the origin. The result is generally fractional — round it

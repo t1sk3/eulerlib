@@ -17,9 +17,9 @@ import (
 	"github.com/t1sk3/eulerlib/v2/vector"
 )
 
-prime_numbers.IsPrime(97)          // true
-num_theory.Factorize(int64(360))   // map[2:3 3:2 5:1]
-vector_n.NewVector([]int{1, 2, 3}) // *Vector[int]
+prime_numbers.IsPrime(97)        // true
+num_theory.Factorize(int64(360)) // map[2:3 3:2 5:1]
+vector.NewVector([]int{1, 2, 3}) // *Vector[int]
 ```
 
 | Package | Import path | Covers |
@@ -30,7 +30,7 @@ vector_n.NewVector([]int{1, 2, 3}) // *Vector[int]
 | `figurate` | `.../v2/figurate` | Triangular, pentagonal, and hexagonal numbers |
 | `sequences` | `.../v2/sequences` | Collatz sequence and length |
 | `pythagoras` | `.../v2/pythagoras` | Pythagorean triplet check |
-| `vector` | `.../v2/vector_n` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
+| `vector` | `.../v2/vector` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
 | `etc` | `.../v2/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
 | `utils` | `.../v2/utils` | Generic type constraints (`Integer`, `Float`, `Number`, ...) and reflection-based type checks |
 
@@ -184,6 +184,9 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `h.Q()`, `h.R()` | Axial coordinate accessors (aliases for the inherited `X()`/`Y()`) |
 | `h.S()` | Third cube coordinate, `s = -q-r` |
 | `HexAreColinear(p1, p2, p3)` | True if `p1`, `p2`, and `p3` all lie on a common line on the hex grid |
+| `Quadrant(p)` | Standard 1–4 quadrant number of `p`, or 0 if `p` lies on either axis |
+| `SameQuadrant(p1, p2)` | True if `p1` and `p2` lie in the same of the four standard quadrants (false if either is on an axis) |
+| `HexSameQuadrant(p1, p2)` | True if `p1` and `p2` lie in the same quadrant of the axial (q, r) coordinate system |
 | `CartesianToHex(p)` | Converts a cartesian point to fractional axial hex coordinates (unit-size, pointy-top hexagons; requires `Float`) |
 | `HexToCartesian(h)` | Converts axial hex coordinates to a cartesian point (inverse of `CartesianToHex`; requires `Float`) |
 | `RoundHex(h)` | Rounds fractional axial hex coordinates to the nearest hex cell (requires `Float`) |
@@ -313,18 +316,18 @@ figurate.IsPentagonal(51)  // true  (P(6)  = 51)
 figurate.IsHexagonal(45)   // true  (H(5)  = 45)
 
 // N-dimensional vector arithmetic
-a := vector_n.NewVector([]int{1, 2, 3})
-b := vector_n.NewVector([]int{4, 5, 6})
+a := vector.NewVector([]int{1, 2, 3})
+b := vector.NewVector([]int{4, 5, 6})
 a.Dot(*b) // 32  (1*4 + 2*5 + 3*6)
 
 // 2D cross (perp-dot) product
-p := vector_n.NewVector2(1, 2)
-q := vector_n.NewVector2(3, 4)
+p := vector.NewVector2(1, 2)
+q := vector.NewVector2(3, 4)
 p.Cross(*q) // -2  (1*4 - 2*3)
 
 // 3D cross product
-i := vector_n.NewVector3(1, 0, 0)
-j := vector_n.NewVector3(0, 1, 0)
+i := vector.NewVector3(1, 0, 0)
+j := vector.NewVector3(0, 1, 0)
 i.Cross(*j) // Vector3{0, 0, 1}
 ```
 
