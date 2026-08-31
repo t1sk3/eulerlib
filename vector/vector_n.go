@@ -1,8 +1,8 @@
-// Package vector_n provides an N-dimensional vector type backed by a slice of
+// Package vector provides an N-dimensional vector type backed by a slice of
 // elements, along with fixed-size Vector2 and Vector3 types that embed it to
 // add named X/Y/Z accessors and dimension-specific operations such as Cross
 // and Perp.
-package vector_n
+package vector
 
 import "github.com/t1sk3/eulerlib/v2/utils"
 

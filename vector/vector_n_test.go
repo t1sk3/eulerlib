@@ -1,4 +1,4 @@
-package vector_n
+package vector
 
 import "testing"
 

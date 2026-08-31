@@ -14,7 +14,7 @@ eulerlib is split into small, focused packages instead of one flat package — i
 import (
 	"github.com/t1sk3/eulerlib/v2/prime_numbers"
 	"github.com/t1sk3/eulerlib/v2/num_theory"
-	"github.com/t1sk3/eulerlib/v2/vector_n"
+	"github.com/t1sk3/eulerlib/v2/vector"
 )
 
 prime_numbers.IsPrime(97)          // true
@@ -30,7 +30,7 @@ vector_n.NewVector([]int{1, 2, 3}) // *Vector[int]
 | `figurate` | `.../v2/figurate` | Triangular, pentagonal, and hexagonal numbers |
 | `sequences` | `.../v2/sequences` | Collatz sequence and length |
 | `pythagoras` | `.../v2/pythagoras` | Pythagorean triplet check |
-| `vector_n` | `.../v2/vector_n` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
+| `vector` | `.../v2/vector_n` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
 | `etc` | `.../v2/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
 | `utils` | `.../v2/utils` | Generic type constraints (`Integer`, `Float`, `Number`, ...) and reflection-based type checks |
 
@@ -138,7 +138,7 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 |---|---|
 | `IsTriplet(a, b, c)` | True if (a, b, c) is a Pythagorean triplet |
 
-### Vectors — `vector_n`
+### Vectors — `vector`
 
 `Vector[E]` is an N-dimensional vector backed by a slice of elements. `Vector2[E]` and `Vector3[E]` embed `Vector[E]` to add named `X`/`Y`/`Z` accessors and dimension-specific operations (`Cross`, `Perp`); both require `SignedNumber`.
 
@@ -279,7 +279,7 @@ import (
 	"github.com/t1sk3/eulerlib/v2/num_theory"
 	"github.com/t1sk3/eulerlib/v2/prime_numbers"
 	"github.com/t1sk3/eulerlib/v2/sequences"
-	"github.com/t1sk3/eulerlib/v2/vector_n"
+	"github.com/t1sk3/eulerlib/v2/vector"
 )
 
 // Check if 28 is a perfect number

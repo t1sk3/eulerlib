@@ -1,4 +1,4 @@
-package vector_n
+package vector
 
 import "github.com/t1sk3/eulerlib/v2/utils"
 
