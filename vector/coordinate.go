@@ -74,8 +74,8 @@ func Quadrant[E utils.SignedInteger](p Vector2[E]) int {
 // quadrant, so SameQuadrant is false whenever either point lies on an
 // axis — even if p1 and p2 are equal.
 func SameQuadrant[E utils.SignedInteger](p1, p2 Vector2[E]) bool {
-	q := quadrant(p1)
-	return q != 0 && q == quadrant(p2)
+	q := Quadrant(p1)
+	return q != 0 && q == Quadrant(p2)
 }
 
 // HexSameQuadrant reports whether p1 and p2 lie in the same quadrant of the
