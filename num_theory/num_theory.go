@@ -267,7 +267,7 @@ func PowMod[E utils.Integer](x, y, p E) int64 {
 	return res
 }
 
-// ToRadians Returns the given angle (in degrees) in radians.
+// ToRadians returns the given angle (in degrees) in radians.
 func ToRadians(n float64) float64 {
 	return n * math.Pi / 180
 }

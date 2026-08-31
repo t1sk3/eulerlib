@@ -24,7 +24,7 @@ type HexCoordinate[E utils.SignedNumber] struct {
 
 // NewHexCoordinate creates an axial hex coordinate from q and r.
 func NewHexCoordinate[E utils.SignedNumber](q, r E) *HexCoordinate[E] {
-	return &HexCoordinate[E]{*NewVector2(q, r)}
+	return &HexCoordinate[E]{Vector2[E]{Vector[E]{elements: []E{q, r}}}}
 }
 
 // Q returns the q axial coordinate.

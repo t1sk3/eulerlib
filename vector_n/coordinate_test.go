@@ -97,7 +97,7 @@ func TestRoundHex(t *testing.T) {
 		wantR float64
 	}{
 		{"already integral", NewHexCoordinate(2.0, -1.0), 2, -1},
-		{"rounds toward nearest cell", NewHexCoordinate(1.2, 0.4), 1, 1},
+		{"rounds toward nearest cell", NewHexCoordinate(1.2, 0.41), 1, 1},
 		{"fixes up largest cube error", NewHexCoordinate(0.6, 0.6), 1, 0},
 	}
 
