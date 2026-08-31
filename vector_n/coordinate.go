@@ -45,7 +45,7 @@ func (h *HexCoordinate[E]) S() E { return -h.Q() - h.R() }
 // linear map, cross(A*u, A*v) = det(A) * cross(u, v). Since det(A) != 0,
 // the perp-dot product of the axial coordinates is zero exactly when the
 // corresponding cartesian points are colinear.
-func HexAreColinear[E utils.SignedNumber](p1, p2 HexCoordinate[E]) bool {
+func HexAreColinear[E utils.SignedInteger](p1, p2 HexCoordinate[E]) bool {
 	return AreColinear(p1.Vector2, p2.Vector2)
 }
 
