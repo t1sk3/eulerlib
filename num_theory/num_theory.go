@@ -267,12 +267,12 @@ func PowMod[E utils.Integer](x, y, p E) int64 {
 	return res
 }
 
-// Returns the given angle (in degrees) in radians.
+// ToRadians Returns the given angle (in degrees) in radians.
 func ToRadians(n float64) float64 {
 	return n * math.Pi / 180
 }
 
-// Returns n!/(k!(n-k)!)
+// Binomial Returns `n!/(k!(n-k)!)`
 func Binomial[E utils.Integer](n E, k E) *big.Int {
 	prod := big.NewInt(1)
 	for i := E(0); i < k; i++ {
