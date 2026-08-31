@@ -8,9 +8,9 @@ import (
 
 // AreColinear reports whether p1 and p2 are colinear, i.e. p1, p2, and the
 // origin all lie on a common line — equivalently, one vector is a scalar
-// multiple of the other (either may be the zero vector). It is defined as
-// the perp-dot product (Vector2.Cross) being zero.
-func AreColinear[E utils.SignedNumber](p1, p2 Vector2[E]) bool {
+// multiple of the other (either may be the zero vector). For floating-point
+// vectors, compare Cross(...) to 0 with a tolerance.
+func AreColinear[E utils.SignedInteger](p1, p2 Vector2[E]) bool {
 	return p1.Cross(p2) == 0
 }
 
