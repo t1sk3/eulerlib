@@ -7,20 +7,20 @@ import (
 
 func TestAreColinear(t *testing.T) {
 	tests := []struct {
-		name   string
-		p1, p2 *Vector2[int]
-		want   bool
+		name       string
+		p1, p2, p3 *Vector2[int]
+		want       bool
 	}{
-		{"parallel same direction", NewVector2(1, 2), NewVector2(2, 4), true},
-		{"parallel opposite direction", NewVector2(1, 2), NewVector2(-2, -4), true},
-		{"zero vector", NewVector2(0, 0), NewVector2(3, 5), true},
-		{"not colinear", NewVector2(1, 2), NewVector2(3, 4), false},
+		{"colinear through origin", NewVector2(0, 0), NewVector2(1, 1), NewVector2(2, 2), true},
+		{"colinear, none at origin", NewVector2(0, 4), NewVector2(2, 2), NewVector2(4, 0), true},
+		{"not colinear", NewVector2(0, 0), NewVector2(1, 0), NewVector2(0, 1), false},
+		{"duplicate point is degenerate colinear", NewVector2(1, 1), NewVector2(1, 1), NewVector2(5, 9), true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := AreColinear(*tt.p1, *tt.p2); got != tt.want {
-				t.Errorf("AreColinear(%v, %v) = %v, want %v", tt.p1, tt.p2, got, tt.want)
+			if got := AreColinear(*tt.p1, *tt.p2, *tt.p3); got != tt.want {
+				t.Errorf("AreColinear(%v, %v, %v) = %v, want %v", tt.p1, tt.p2, tt.p3, got, tt.want)
 			}
 		})
 	}
@@ -44,20 +44,20 @@ func TestNewHexCoordinate(t *testing.T) {
 
 func TestHexAreColinear(t *testing.T) {
 	tests := []struct {
-		name   string
-		p1, p2 *HexCoordinate[int]
-		want   bool
+		name       string
+		p1, p2, p3 *HexCoordinate[int]
+		want       bool
 	}{
-		{"parallel same direction", NewHexCoordinate(1, 2), NewHexCoordinate(2, 4), true},
-		{"parallel opposite direction", NewHexCoordinate(1, -1), NewHexCoordinate(-3, 3), true},
-		{"zero vector", NewHexCoordinate(0, 0), NewHexCoordinate(4, -1), true},
-		{"not colinear", NewHexCoordinate(1, 0), NewHexCoordinate(0, 1), false},
+		{"colinear through origin", NewHexCoordinate(0, 0), NewHexCoordinate(1, 2), NewHexCoordinate(2, 4), true},
+		{"colinear, none at origin", NewHexCoordinate(1, -1), NewHexCoordinate(2, -2), NewHexCoordinate(4, -4), true},
+		{"not colinear", NewHexCoordinate(0, 0), NewHexCoordinate(1, 0), NewHexCoordinate(0, 1), false},
+		{"duplicate point is degenerate colinear", NewHexCoordinate(2, 3), NewHexCoordinate(2, 3), NewHexCoordinate(-1, 5), true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := HexAreColinear(*tt.p1, *tt.p2); got != tt.want {
-				t.Errorf("HexAreColinear(%v, %v) = %v, want %v", tt.p1, tt.p2, got, tt.want)
+			if got := HexAreColinear(*tt.p1, *tt.p2, *tt.p3); got != tt.want {
+				t.Errorf("HexAreColinear(%v, %v, %v) = %v, want %v", tt.p1, tt.p2, tt.p3, got, tt.want)
 			}
 		})
 	}
