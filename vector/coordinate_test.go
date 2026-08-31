@@ -63,6 +63,50 @@ func TestHexAreColinear(t *testing.T) {
 	}
 }
 
+func TestSameQuadrant(t *testing.T) {
+	tests := []struct {
+		name   string
+		p1, p2 *Vector2[int]
+		want   bool
+	}{
+		{"both quadrant I", NewVector2(1, 2), NewVector2(5, 9), true},
+		{"both quadrant III", NewVector2(-1, -2), NewVector2(-5, -9), true},
+		{"different quadrants", NewVector2(1, 2), NewVector2(-1, 2), false},
+		{"p1 on axis", NewVector2(0, 2), NewVector2(1, 2), false},
+		{"p2 on axis", NewVector2(1, 2), NewVector2(1, 0), false},
+		{"both at origin", NewVector2(0, 0), NewVector2(0, 0), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := SameQuadrant(*tt.p1, *tt.p2); got != tt.want {
+				t.Errorf("SameQuadrant(%v, %v) = %v, want %v", tt.p1, tt.p2, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestHexSameQuadrant(t *testing.T) {
+	tests := []struct {
+		name   string
+		p1, p2 *HexCoordinate[int]
+		want   bool
+	}{
+		{"both quadrant I", NewHexCoordinate(1, 2), NewHexCoordinate(5, 9), true},
+		{"both quadrant III", NewHexCoordinate(-1, -2), NewHexCoordinate(-5, -9), true},
+		{"different quadrants", NewHexCoordinate(1, 2), NewHexCoordinate(-1, 2), false},
+		{"p1 on axis", NewHexCoordinate(0, 2), NewHexCoordinate(1, 2), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := HexSameQuadrant(*tt.p1, *tt.p2); got != tt.want {
+				t.Errorf("HexSameQuadrant(%v, %v) = %v, want %v", tt.p1, tt.p2, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCartesianHexRoundTrip(t *testing.T) {
 	hexes := []*HexCoordinate[float64]{
 		NewHexCoordinate(0.0, 0.0),
