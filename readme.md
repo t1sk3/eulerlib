@@ -33,6 +33,7 @@ vector.NewVector([]int{1, 2, 3}) // *Vector[int]
 | `vector` | `.../v2/vector` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
 | `etc` | `.../v2/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
 | `utils` | `.../v2/utils` | Generic type constraints (`Integer`, `Float`, `Number`, ...) and reflection-based type checks |
+| `progress` | `.../v2/progress` | Live progress bar for `range` loops over a slice or a count |
 
 Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/v2) comments on every exported symbol.
 
@@ -238,6 +239,20 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `ReadFile(name)` | Read a file's content as a string |
 | `FileExists(name)` | True if the file exists |
 
+### Progress Bar — `progress`
+
+Requires the `range` keyword (Go 1.23 range-over-func / Go 1.22 range-over-int). Rendering is delegated to [schollz/progressbar](https://github.com/schollz/progressbar).
+
+| Function | Description |
+|---|---|
+| `ProgressBar(slice, opts...)` | Ranges over a slice, drawing a live progress bar as iteration proceeds |
+| `ProgressBarN(n, opts...)` | Ranges over `[0, n)`, drawing a live progress bar as iteration proceeds |
+| `WithWidth(n)` | Option: number of characters in the bar itself (default 10) |
+| `WithWriter(w)` | Option: where the bar is rendered (default `os.Stderr`) |
+| `WithLabel(s)` | Option: description printed before the bar |
+
+`Option` is an alias for `progressbar.Option`, so any option from the underlying library (colors, spinner style, byte mode, ...) can be passed straight through too.
+
 ### Type Utilities — `utils`
 
 | Function | Description |
@@ -281,6 +296,7 @@ import (
 	"github.com/t1sk3/eulerlib/v2/figurate"
 	"github.com/t1sk3/eulerlib/v2/num_theory"
 	"github.com/t1sk3/eulerlib/v2/prime_numbers"
+	"github.com/t1sk3/eulerlib/v2/progress"
 	"github.com/t1sk3/eulerlib/v2/sequences"
 	"github.com/t1sk3/eulerlib/v2/vector"
 )
@@ -329,6 +345,19 @@ p.Cross(*q) // -2  (1*4 - 2*3)
 i := vector.NewVector3(1, 0, 0)
 j := vector.NewVector3(0, 1, 0)
 i.Cross(*j) // Vector3{0, 0, 1}
+
+// Live progress bar while ranging over a slice
+primes := prime_numbers.ListPrimes(1000)
+for i, p := range progress.ProgressBar(primes) {
+    _ = i
+    _ = p // do something with each prime
+}
+// 100% |████████████████████████████████████████| (168/168, 9000 it/s)
+
+// ...or over a plain count
+for i := range progress.ProgressBarN(1_000_000, progress.WithLabel("euler #10")) {
+    _ = i
+}
 ```
 
 ---
