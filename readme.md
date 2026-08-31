@@ -179,11 +179,11 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 
 | Function | Description |
 |---|---|
-| `AreColinear(p1, p2)` | True if `p1`, `p2`, and the origin lie on a common line (perp-dot product is zero) |
+| `AreColinear(p1, p2, p3)` | True if `p1`, `p2`, and `p3` all lie on a common line |
 | `NewHexCoordinate(q, r)` | Creates an axial hex coordinate |
 | `h.Q()`, `h.R()` | Axial coordinate accessors (aliases for the inherited `X()`/`Y()`) |
 | `h.S()` | Third cube coordinate, `s = -q-r` |
-| `HexAreColinear(p1, p2)` | True if `p1`, `p2`, and the origin lie on a common line on the hex grid |
+| `HexAreColinear(p1, p2, p3)` | True if `p1`, `p2`, and `p3` all lie on a common line on the hex grid |
 | `CartesianToHex(p)` | Converts a cartesian point to fractional axial hex coordinates (unit-size, pointy-top hexagons; requires `Float`) |
 | `HexToCartesian(h)` | Converts axial hex coordinates to a cartesian point (inverse of `CartesianToHex`; requires `Float`) |
 | `RoundHex(h)` | Rounds fractional axial hex coordinates to the nearest hex cell (requires `Float`) |
