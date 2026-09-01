@@ -82,6 +82,31 @@ func TestProgressBarNEmpty(t *testing.T) {
 	}
 }
 
+func TestSpinnerStopsOnBreak(t *testing.T) {
+	var buf bytes.Buffer
+
+	var got []int
+	for i := range Spinner(WithWriter(&buf)) {
+		got = append(got, i)
+		if i == 4 {
+			break
+		}
+	}
+
+	want := []int{0, 1, 2, 3, 4}
+	if len(got) != len(want) {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("got[%d] = %d, want %d", i, got[i], want[i])
+		}
+	}
+	if buf.Len() == 0 {
+		t.Error("expected some output to be written to the writer")
+	}
+}
+
 func TestWithLabelAndWidth(t *testing.T) {
 	var buf bytes.Buffer
 

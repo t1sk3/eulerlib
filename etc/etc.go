@@ -273,6 +273,41 @@ func ListTotients[E utils.Integer](n E) []E {
 	return res
 }
 
+// ListMobius returns a slice of length n+1 where res[i] = μ(i), the Möbius
+// function, for i in [0,n]. μ(0) is defined as 0; for n >= 1, μ(1) = 1,
+// μ(i) = 0 if i has a squared prime factor, otherwise μ(i) = (-1)^k where k
+// is the number of distinct prime factors of i. Uses a linear sieve for
+// O(n) performance. Requires a signed integer type since μ can be -1.
+func ListMobius[E utils.SignedInteger](n E) []E {
+	if n < 0 {
+		panic("n must be positive")
+	}
+	mu := make([]E, n+1)
+	isComposite := make([]bool, n+1)
+	var primes []E
+	if n >= 1 {
+		mu[1] = 1
+	}
+	for i := E(2); i <= n; i++ {
+		if !isComposite[i] {
+			primes = append(primes, i)
+			mu[i] = -1
+		}
+		for _, p := range primes {
+			if i*p > n {
+				break
+			}
+			isComposite[i*p] = true
+			if i%p == 0 {
+				mu[i*p] = 0
+				break
+			}
+			mu[i*p] = -mu[i]
+		}
+	}
+	return mu
+}
+
 // Range returns a slice from start (inclusive) to stop (exclusive), stepping by 1.
 // If start > stop, it counts down.
 func Range[E utils.RealNumber](start, stop E) (res []E) {

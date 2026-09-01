@@ -33,7 +33,9 @@ vector.NewVector([]int{1, 2, 3}) // *Vector[int]
 | `vector` | `.../v2/vector` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
 | `etc` | `.../v2/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
 | `utils` | `.../v2/utils` | Generic type constraints (`Integer`, `Float`, `Number`, ...) and reflection-based type checks |
-| `progress` | `.../v2/progress` | Live progress bar for `range` loops over a slice or a count |
+| `progress` | `.../v2/progress` | Live progress bar (and open-ended spinner) for `range` loops over a slice or a count |
+| `stopwatch` | `.../v2/stopwatch` | Timing helper for benchmarking brute-force runs |
+| `memo` | `.../v2/memo` | Generic memoization wrappers for recursive/DP-style brute forces |
 
 Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/v2) comments on every exported symbol.
 
@@ -49,6 +51,7 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `NextPrime(n)` | Returns the next prime after n |
 | `ListPrimes(n)` | Returns all primes up to n |
 | `ListPrimality(n)` | Sieve of Eratosthenes — returns `[]bool` indexed by number |
+| `ListSmallestPrimeFactors(n)` | Sieve — returns `[]E` of each number's smallest prime factor, for O(log n) factorization via `num_theory.FactorizeSPF` |
 | `FirstNPrimes(n)` | Returns the first n primes |
 | `PrimeCount(s, e)` | Counts primes in the range [s, e] |
 | `SumPrimes(s, e)` | Sums all primes in the range [s, e] |
@@ -67,11 +70,16 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `IsPerfect(n)` | True if `SumDivisors(n) == n` (e.g. 6, 28, 496) |
 | `IsAmicable(n)` | True if n and `SumDivisors(n)` form an amicable pair |
 | `Factorize(n)` | Prime factorization as `map[E]E{prime: exponent}` |
+| `FactorizeSPF(n, spf)` | Prime factorization using a smallest-prime-factor table from `prime_numbers.ListSmallestPrimeFactors` — O(log n) instead of `Factorize`'s O(n) |
 | `FactorizeBigInt(n)` | Prime factorization of `*big.Int` as `[][2]*big.Int` |
 | `PrimeFactors(n)` | Returns the prime factors of n (with repeats) |
 | `PrimeFactorsBigInt(n)` | Prime factors of a `*big.Int` as `[][]int64{prime, exp}` |
 | `Gcd(a, b, ...)` | Greatest common divisor |
 | `Lcm(a, b, ...)` | Least common multiple |
+| `IsCoprime(a, b)` | True if `Gcd(a, b) == 1` |
+| `ExtGcd(a, b)` | Extended Euclidean algorithm — returns `(g, x, y)` with `a*x + b*y = g` |
+| `ModInverse(a, m)` | Modular multiplicative inverse of a mod m, and whether it exists |
+| `CRT(remainders, moduli)` | Chinese Remainder Theorem — solves `x ≡ remainders[i] (mod moduli[i])` for all i (moduli needn't be coprime) |
 
 ### Powers & Modular Arithmetic — `num_theory`
 
@@ -94,6 +102,7 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `Permutations(arr)` | All permutations of a slice |
 | `PermutationCount(arr)` | Number of distinct permutations |
 | `Combinations(set, n)` | All size-n combinations (pass 0 for all sizes) |
+| `Partition(n)` | Partition function p(n) — ways to write n as a sum of positive integers, order ignored — as `*big.Int` |
 
 ### Number Theory — `num_theory`
 
@@ -101,8 +110,10 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 |---|---|
 | `Totient(n)` | Euler's totient φ(n) *(in `etc`)* |
 | `ListTotients(n)` | φ(0)…φ(n) via O(n log log n) sieve *(in `etc`)* |
+| `ListMobius(n)` | μ(0)…μ(n), the Möbius function, via O(n) linear sieve *(in `etc`)* |
 | `DigitSum(n)` | Sum of decimal digits of n |
 | `DigitSumString(s)` | Sum of decimal digits of a numeric string (arbitrary length) |
+| `DigitCount(n)` | Number of decimal digits in n |
 | `IsSquare(n)` | True if n is a perfect square |
 | `FloatIsInteger(n)` | True if float has no fractional part |
 | `IsPandigital(n)` | True if n contains digits 1–9 exactly once *(in `etc`)* |
@@ -247,11 +258,43 @@ Requires the `range` keyword (Go 1.23 range-over-func / Go 1.22 range-over-int).
 |---|---|
 | `ProgressBar(slice, opts...)` | Ranges over a slice, drawing a live progress bar as iteration proceeds |
 | `ProgressBarN(n, opts...)` | Ranges over `[0, n)`, drawing a live progress bar as iteration proceeds |
+| `Spinner(opts...)` | Ranges over `[0, 1, 2, ...)` with no upper bound, drawing a live spinner (no % or ETA) — for open-ended brute-force search where the total is unknown; break the loop when done |
 | `WithWidth(n)` | Option: number of characters in the bar itself (default 10) |
 | `WithWriter(w)` | Option: where the bar is rendered (default `os.Stderr`) |
 | `WithLabel(s)` | Option: description printed before the bar |
 
 `Option` is an alias for `progressbar.Option`, so any option from the underlying library (colors, spinner style, byte mode, ...) can be passed straight through too.
+
+### Timing — `stopwatch`
+
+| Function | Description |
+|---|---|
+| `Start(label, opts...)` | Starts a timer, returns a `Stop` func — call (or `defer`) it to print `"<label>: <elapsed>"` and get the elapsed `time.Duration` |
+| `Time(label, fn, opts...)` | Runs fn, printing and returning the elapsed time the same way `Start`'s returned func does |
+| `WithWriter(w)` | Option: where the elapsed-time line is printed (default `os.Stderr`) |
+
+```go
+defer stopwatch.Start("part 2")()
+```
+
+### Memoization — `memo`
+
+| Function | Description |
+|---|---|
+| `Memoize(fn)` | Wraps a single-argument function so repeat calls with the same argument are computed once |
+| `Memoize2(fn)` | `Memoize` for a two-argument function — handy for `(position, state)`-style recurrences |
+
+Not safe for concurrent use. For a recursive function, declare the variable first so the memoized wrapper can call itself:
+
+```go
+var fib func(n int) int64
+fib = memo.Memoize(func(n int) int64 {
+	if n < 2 {
+		return int64(n)
+	}
+	return fib(n-1) + fib(n-2)
+})
+```
 
 ### Type Utilities — `utils`
 

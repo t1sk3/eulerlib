@@ -97,6 +97,29 @@ func ListPrimality[E utils.Integer](n E) []bool {
 	return res
 }
 
+// ListSmallestPrimeFactors returns a slice where res[i] is the smallest
+// prime factor of i, for i in [0, n]. res[0] and res[1] are 0, since
+// neither has a prime factor. Built with a sieve in O(n log log n), the
+// table lets you factorize any number in [0, n] in O(log n) via
+// num_theory.FactorizeSPF instead of trial division, handy when a
+// brute-force search needs to factorize many numbers in that range.
+func ListSmallestPrimeFactors[E utils.Integer](n E) []E {
+	if n < 0 {
+		panic("n must be positive")
+	}
+	spf := make([]E, n+1)
+	for i := E(2); i <= n; i++ {
+		if spf[i] == 0 { // i is prime
+			for j := i; j <= n; j += i {
+				if spf[j] == 0 {
+					spf[j] = i
+				}
+			}
+		}
+	}
+	return spf
+}
+
 // Lists all primes up to n
 func ListPrimes[E utils.Integer](n E) (res []E) {
 	for i, p := range ListPrimality(n) {

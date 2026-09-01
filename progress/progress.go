@@ -90,3 +90,27 @@ func ProgressBarN(n int, opts ...Option) iter.Seq[int] {
 		}
 	}
 }
+
+// Spinner ranges over an unbounded count [0, 1, 2, ...), drawing a live
+// spinner (no percentage or ETA, since the total is unknown) as iteration
+// proceeds. Useful for open-ended brute-force search where you don't know
+// in advance how many iterations it'll take to find an answer — break out
+// of the loop once you have:
+//
+//	for i := range progress.Spinner() {
+//	    if found(i) {
+//	        break
+//	    }
+//	}
+func Spinner(opts ...Option) iter.Seq[int] {
+	bar := newBar(-1, opts...)
+	return func(yield func(int) bool) {
+		defer bar.Finish()
+		for i := 0; ; i++ {
+			if !yield(i) {
+				return
+			}
+			bar.Add(1)
+		}
+	}
+}
