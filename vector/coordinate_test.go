@@ -63,6 +63,32 @@ func TestHexAreColinear(t *testing.T) {
 	}
 }
 
+func TestQuadrant(t *testing.T) {
+	tests := []struct {
+		name string
+		p    *Vector2[int]
+		want int
+	}{
+		{"interior of I", NewVector2(1, 2), 1},
+		{"interior of II", NewVector2(-1, 2), 2},
+		{"interior of III", NewVector2(-1, -2), 3},
+		{"interior of IV", NewVector2(1, -2), 4},
+		{"positive x-axis is I's lower boundary", NewVector2(3, 0), 1},
+		{"positive y-axis is II's lower boundary", NewVector2(0, 3), 2},
+		{"negative x-axis is III's lower boundary", NewVector2(-3, 0), 3},
+		{"negative y-axis is IV's lower boundary", NewVector2(0, -3), 4},
+		{"origin is IV by convention", NewVector2(0, 0), 4},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Quadrant(*tt.p); got != tt.want {
+				t.Errorf("Quadrant(%v) = %d, want %d", tt.p, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestSameQuadrant(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -72,9 +98,9 @@ func TestSameQuadrant(t *testing.T) {
 		{"both quadrant I", NewVector2(1, 2), NewVector2(5, 9), true},
 		{"both quadrant III", NewVector2(-1, -2), NewVector2(-5, -9), true},
 		{"different quadrants", NewVector2(1, 2), NewVector2(-1, 2), false},
-		{"p1 on axis", NewVector2(0, 2), NewVector2(1, 2), false},
-		{"p2 on axis", NewVector2(1, 2), NewVector2(1, 0), false},
-		{"both at origin", NewVector2(0, 0), NewVector2(0, 0), false},
+		{"p1 on positive y-axis is quadrant II, differs from p2's quadrant I", NewVector2(0, 2), NewVector2(1, 2), false},
+		{"p2 on positive x-axis is quadrant I's lower boundary, same as p1's quadrant I", NewVector2(1, 2), NewVector2(1, 0), true},
+		{"both at origin fall in quadrant IV by convention, so same quadrant", NewVector2(0, 0), NewVector2(0, 0), true},
 	}
 
 	for _, tt := range tests {
