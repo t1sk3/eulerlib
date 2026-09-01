@@ -255,6 +255,12 @@ func ExtGcd[E utils.SignedInteger](a, b E) (g, x, y E) {
 // value x in [0, m) such that a*x ≡ 1 (mod m) — and true. It returns
 // (0, false) if a and m are not coprime, in which case no inverse exists.
 func ModInverse[E utils.SignedInteger](a, m E) (E, bool) {
+	if m == 0 {
+		return 0, false
+	}
+	if m < 0 {
+		m = -m
+	}
 	g, x, _ := ExtGcd(a, m)
 	if g != 1 {
 		return 0, false
@@ -276,6 +282,9 @@ func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
 	if len(remainders) == 0 || len(remainders) != len(moduli) {
 		return 0, 0, false
 	}
+	if moduli[0] == 0 {
+		return 0, 0, false
+	}
 
 	x, m := remainders[0]%moduli[0], moduli[0]
 	if x < 0 {
@@ -284,6 +293,9 @@ func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
 
 	for i := 1; i < len(remainders); i++ {
 		r, n := remainders[i], moduli[i]
+		if n == 0 {
+			return 0, 0, false
+		}
 		g, p, _ := ExtGcd(m, n)
 		if (r-x)%g != 0 {
 			return 0, 0, false
@@ -321,8 +333,17 @@ func Factorize[E utils.Integer](n E) map[E]E {
 // range of numbers.
 func FactorizeSPF[E utils.Integer](n E, spf []E) map[E]E {
 	factors := make(map[E]E)
+	if n <= 1 {
+		return factors
+	}
+	if int(n) >= len(spf) {
+		panic("spf table too small")
+	}
 	for n > 1 {
 		p := spf[n]
+		if p == 0 {
+			panic("spf table missing factor")
+		}
 		factors[p]++
 		n /= p
 	}

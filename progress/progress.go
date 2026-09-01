@@ -42,7 +42,7 @@ func newBar(total int, opts ...Option) *progressbar.ProgressBar {
 		progressbar.OptionShowCount(),
 		progressbar.OptionShowIts(),
 		progressbar.OptionThrottle(65 * time.Millisecond),
-		progressbar.OptionOnCompletion(func() { fmt.Fprintln(os.Stderr) }),
+		progressbar.OptionOnCompletion(func() {}),
 		progressbar.OptionSpinnerType(14),
 		progressbar.OptionFullWidth(),
 		progressbar.OptionSetRenderBlankState(true),
@@ -64,10 +64,10 @@ func ProgressBar[T any](s []T, opts ...Option) iter.Seq2[int, T] {
 	return func(yield func(int, T) bool) {
 		defer bar.Finish()
 		for i, e := range s {
+			bar.Add(1)
 			if !yield(i, e) {
 				return
 			}
-			bar.Add(1)
 		}
 	}
 }
