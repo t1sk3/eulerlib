@@ -4,7 +4,6 @@
 package progress
 
 import (
-	"fmt"
 	"io"
 	"iter"
 	"os"
