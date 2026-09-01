@@ -75,6 +75,27 @@ func TestSquareOfSum(t *testing.T) {
 	}
 }
 
+func TestListMobius(t *testing.T) {
+	// μ(0..15), from OEIS A008683.
+	want := []int64{0, 1, -1, -1, 0, -1, 1, -1, 0, 0, 1, -1, 0, -1, 1, 1}
+	got := ListMobius(int64(15))
+	if len(got) != len(want) {
+		t.Fatalf("len(ListMobius(15)) = %d, want %d", len(got), len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("ListMobius(15)[%d] = %d, want %d", i, got[i], want[i])
+		}
+	}
+}
+
+func TestListMobiusZero(t *testing.T) {
+	got := ListMobius(int64(0))
+	if len(got) != 1 || got[0] != 0 {
+		t.Errorf("ListMobius(0) = %v, want [0]", got)
+	}
+}
+
 func TestRemoveDuplicatesFunc(t *testing.T) {
 	eq := func(a, b int) bool { return a == b }
 	got := RemoveDuplicatesFunc([]int{1, 2, 1, 3, 2, 4}, eq)

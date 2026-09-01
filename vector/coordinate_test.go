@@ -63,6 +63,29 @@ func TestHexAreColinear(t *testing.T) {
 	}
 }
 
+func TestQuadrant(t *testing.T) {
+	tests := []struct {
+		name string
+		p    *Vector2[int]
+		want int
+	}{
+		{"quadrant I", NewVector2(1, 1), 1},
+		{"quadrant II", NewVector2(-1, 1), 2},
+		{"quadrant III", NewVector2(-1, -1), 3},
+		{"quadrant IV", NewVector2(1, -1), 4},
+		{"on x-axis", NewVector2(3, 0), 0},
+		{"on y-axis", NewVector2(0, -2), 0},
+		{"origin", NewVector2(0, 0), 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Quadrant(*tt.p); got != tt.want {
+				t.Errorf("Quadrant(%v) = %d, want %d", tt.p, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestSameQuadrant(t *testing.T) {
 	tests := []struct {
 		name   string

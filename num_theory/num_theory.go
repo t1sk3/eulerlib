@@ -114,6 +114,36 @@ func Combinations[E any, F utils.Integer](set []E, n F) (subsets [][]E) { // htt
 	return subsets
 }
 
+// Partition returns p(n), the number of ways to write n as a sum of one or
+// more positive integers, ignoring order (the partition function). It's
+// computed via Euler's pentagonal number recurrence in O(n*sqrt(n)), and
+// returns a *big.Int since p(n) grows quickly (p(100) already has 9
+// digits). Returns 1 for n == 0, and 0 for n < 0.
+func Partition[E utils.Integer](n E) *big.Int {
+	if n < 0 {
+		return big.NewInt(0)
+	}
+	p := make([]*big.Int, n+1)
+	p[0] = big.NewInt(1)
+	for i := E(1); i <= n; i++ {
+		sum := big.NewInt(0)
+		for k := E(1); k*(3*k-1)/2 <= i || k*(3*k+1)/2 <= i; k++ {
+			sign := int64(1)
+			if k%2 == 0 {
+				sign = -1
+			}
+			if g := k * (3*k - 1) / 2; g <= i {
+				sum.Add(sum, new(big.Int).Mul(p[i-g], big.NewInt(sign)))
+			}
+			if g := k * (3*k + 1) / 2; g <= i {
+				sum.Add(sum, new(big.Int).Mul(p[i-g], big.NewInt(sign)))
+			}
+		}
+		p[i] = sum
+	}
+	return p[n]
+}
+
 // Factorial Calculates the factorial of the given integer
 func Factorial[E utils.Integer](n E) E {
 	if n == 0 {
@@ -158,6 +188,18 @@ func DigitSum[E utils.Integer](n E) (res E) {
 	return
 }
 
+// DigitCount returns the number of decimal digits in n. Returns 1 for n <= 0.
+func DigitCount[E utils.Integer](n E) (count E) {
+	if n <= 0 {
+		return 1
+	}
+	for n > 0 {
+		count++
+		n /= 10
+	}
+	return
+}
+
 // DigitSumString returns the sum of the decimal digits of the string s.
 // Works correctly for arbitrarily large digit strings.
 func DigitSumString(s string) int64 {
@@ -190,6 +232,97 @@ func gcd[E utils.Integer](a, b E) E {
 	return a
 }
 
+// IsCoprime returns true if a and b share no common factor other than 1.
+func IsCoprime[E utils.Integer](a, b E) bool {
+	return Gcd(a, b) == 1
+}
+
+// ExtGcd returns g = gcd(a, b) along with x and y such that a*x + b*y = g
+// (Bézout's identity), via the extended Euclidean algorithm. g is always
+// non-negative.
+func ExtGcd[E utils.SignedInteger](a, b E) (g, x, y E) {
+	if b == 0 {
+		if a < 0 {
+			return -a, -1, 0
+		}
+		return a, 1, 0
+	}
+	g, x1, y1 := ExtGcd(b, a%b)
+	return g, y1, x1 - (a/b)*y1
+}
+
+// ModInverse returns the modular multiplicative inverse of a mod m — the
+// value x in [0, m) such that a*x ≡ 1 (mod m) — and true. It returns
+// (0, false) if a and m are not coprime, in which case no inverse exists.
+func ModInverse[E utils.SignedInteger](a, m E) (E, bool) {
+	if m == 0 {
+		return 0, false
+	}
+	if m < 0 {
+		m = -m
+	}
+	g, x, _ := ExtGcd(a, m)
+	if g != 1 {
+		return 0, false
+	}
+	x %= m
+	if x < 0 {
+		x += m
+	}
+	return x, true
+}
+
+// CRT solves the system of congruences x ≡ remainders[i] (mod moduli[i])
+// for every i, by repeatedly combining congruences pairwise (the moduli
+// need not be pairwise coprime). It returns the unique solution x modulo
+// the combined modulus M = lcm(moduli), M itself, and true — or
+// (0, 0, false) if the system has no solution, or if remainders and moduli
+// have different lengths or are empty.
+func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
+	if len(remainders) == 0 || len(remainders) != len(moduli) {
+		return 0, 0, false
+	}
+	if moduli[0] == 0 {
+		return 0, 0, false
+	}
+
+	x, m := remainders[0], moduli[0]
+	if m < 0 {
+		m = -m
+	}
+	x %= m
+	if x < 0 {
+		x += m
+	}
+
+	for i := 1; i < len(remainders); i++ {
+		r, n := remainders[i], moduli[i]
+		if n == 0 {
+			return 0, 0, false
+		}
+		if n < 0 {
+			n = -n
+		}
+		r %= n
+		if r < 0 {
+			r += n
+		}
+		g, p, _ := ExtGcd(m, n)
+		if (r-x)%g != 0 {
+			return 0, 0, false
+		}
+		lcm := m / g * n
+		diff := (r - x) / g
+		x = x + m*((diff*p)%(n/g))
+		x %= lcm
+		if x < 0 {
+			x += lcm
+		}
+		m = lcm
+	}
+	return x, m, true
+}
+
 // Factorize returns the prime factorization of n as a map of prime → exponent.
 // Returns an empty map for n <= 1.
 func Factorize[E utils.Integer](n E) map[E]E {
@@ -199,6 +332,31 @@ func Factorize[E utils.Integer](n E) map[E]E {
 			factors[i]++
 			n /= i
 		}
+	}
+	return factors
+}
+
+// FactorizeSPF returns the prime factorization of n as a map of prime →
+// exponent, using a smallest-prime-factor table built by
+// prime_numbers.ListSmallestPrimeFactors(m) for some m >= n. It runs in
+// O(log n), versus Factorize's O(n) trial division — build the table once
+// and reuse it across many calls, e.g. when brute-forcing over a whole
+// range of numbers.
+func FactorizeSPF[E utils.Integer](n E, spf []E) map[E]E {
+	factors := make(map[E]E)
+	if n <= 1 {
+		return factors
+	}
+	if int(n) >= len(spf) {
+		panic("spf table too small")
+	}
+	for n > 1 {
+		p := spf[n]
+		if p == 0 {
+			panic("spf table missing factor")
+		}
+		factors[p]++
+		n /= p
 	}
 	return factors
 }

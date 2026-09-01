@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/t1sk3/eulerlib/v2/etc"
+	"github.com/t1sk3/eulerlib/v2/prime_numbers"
 )
 
 func TestFactorial(t *testing.T) {
@@ -384,4 +385,168 @@ func TestDigitSumStringLarge(t *testing.T) {
 	if got != 225 {
 		t.Errorf("DigitSumString(25×'9') = %d, want 225", got)
 	}
+}
+
+func TestDigitCount(t *testing.T) {
+	cases := []struct{ n, want int64 }{
+		{0, 1}, {5, 1}, {9, 1}, {10, 2}, {99, 2}, {100, 3}, {1234567890, 10},
+	}
+	for _, tc := range cases {
+		if got := DigitCount(tc.n); got != tc.want {
+			t.Errorf("DigitCount(%d) = %d, want %d", tc.n, got, tc.want)
+		}
+	}
+}
+
+func TestIsCoprime(t *testing.T) {
+	cases := []struct {
+		a, b int64
+		want bool
+	}{
+		{1, 1, true}, {2, 3, true}, {8, 9, true}, {6, 9, false}, {17, 34, false}, {35, 64, true},
+	}
+	for _, tc := range cases {
+		if got := IsCoprime(tc.a, tc.b); got != tc.want {
+			t.Errorf("IsCoprime(%d, %d) = %t, want %t", tc.a, tc.b, got, tc.want)
+		}
+	}
+}
+
+func TestExtGcd(t *testing.T) {
+	cases := []struct{ a, b int64 }{
+		{240, 46}, {46, 240}, {17, 5}, {0, 5}, {5, 0}, {-12, 18}, {12, -18},
+	}
+	for _, tc := range cases {
+		g, x, y := ExtGcd(tc.a, tc.b)
+		wantG := Gcd(etc.Abs(tc.a), etc.Abs(tc.b))
+		if tc.a == 0 && tc.b == 0 {
+			continue
+		}
+		if wantG == 0 {
+			wantG = etc.Abs(tc.a) + etc.Abs(tc.b)
+		}
+		if g != wantG {
+			t.Errorf("ExtGcd(%d, %d) gcd = %d, want %d", tc.a, tc.b, g, wantG)
+		}
+		if tc.a*x+tc.b*y != g {
+			t.Errorf("ExtGcd(%d, %d) = (%d, %d, %d), but a*x+b*y = %d, want %d", tc.a, tc.b, g, x, y, tc.a*x+tc.b*y, g)
+		}
+	}
+}
+
+func TestModInverse(t *testing.T) {
+	cases := []struct {
+		a, m, want int64
+		ok         bool
+	}{
+		{3, 11, 4, true},   // 3*4 = 12 ≡ 1 (mod 11)
+		{10, 17, 12, true}, // 10*12 = 120 ≡ 1 (mod 17)
+		{6, 9, 0, false},   // gcd(6,9) = 3, no inverse
+		{1, 1, 0, true},    // any x works mod 1; canonical is 0
+		{3, 0, 0, false},   // zero modulus is invalid
+		{3, -11, 4, true},  // negative modulus is normalized
+	}
+	for _, tc := range cases {
+		got, ok := ModInverse(tc.a, tc.m)
+		if ok != tc.ok {
+			t.Errorf("ModInverse(%d, %d) ok = %t, want %t", tc.a, tc.m, ok, tc.ok)
+			continue
+		}
+		if ok && got != tc.want {
+			t.Errorf("ModInverse(%d, %d) = %d, want %d", tc.a, tc.m, got, tc.want)
+		}
+		if ok && (tc.a*got)%tc.m != 1%tc.m {
+			t.Errorf("ModInverse(%d, %d) = %d, but %d*%d mod %d = %d, want 1", tc.a, tc.m, got, tc.a, got, tc.m, (tc.a*got)%tc.m)
+		}
+	}
+}
+
+func TestCRT(t *testing.T) {
+	// x ≡ 2 (mod 3), x ≡ 3 (mod 5), x ≡ 2 (mod 7) -> x = 23 (mod 105)
+	x, m, ok := CRT([]int64{2, 3, 2}, []int64{3, 5, 7})
+	if !ok {
+		t.Fatal("CRT([2,3,2], [3,5,7]) ok = false, want true")
+	}
+	if m != 105 {
+		t.Errorf("CRT([2,3,2], [3,5,7]) modulus = %d, want 105", m)
+	}
+	if x != 23 {
+		t.Errorf("CRT([2,3,2], [3,5,7]) = %d, want 23", x)
+	}
+
+	// Non-coprime, consistent moduli: x ≡ 5 (mod 6), x ≡ 3 (mod 4) -> x = 11 (mod 12)
+	x, m, ok = CRT([]int64{5, 3}, []int64{6, 4})
+	if !ok || m != 12 || x != 11 {
+		t.Errorf("CRT([5,3], [6,4]) = (%d, %d, %t), want (11, 12, true)", x, m, ok)
+	}
+
+	// Contradictory system: no solution.
+	if _, _, ok := CRT([]int64{1, 2}, []int64{4, 4}); ok {
+		t.Error("CRT([1,2], [4,4]) ok = true, want false (contradictory system)")
+	}
+
+	// Mismatched lengths.
+	if _, _, ok := CRT([]int64{1, 2}, []int64{4}); ok {
+		t.Error("CRT with mismatched lengths ok = true, want false")
+	}
+
+	// Zero modulus is invalid.
+	if _, _, ok := CRT([]int64{1}, []int64{0}); ok {
+		t.Error("CRT with zero modulus ok = true, want false")
+	}
+	if _, _, ok := CRT([]int64{1, 2}, []int64{3, 0}); ok {
+		t.Error("CRT with zero modulus in later equation ok = true, want false")
+	}
+}
+
+func TestPartition(t *testing.T) {
+	// p(0)..p(10), from OEIS A000041.
+	want := []int64{1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42}
+	for n, w := range want {
+		if got := Partition(int64(n)); got.Int64() != w {
+			t.Errorf("Partition(%d) = %d, want %d", n, got, w)
+		}
+	}
+	if got := Partition(int64(100)); got.String() != "190569292" {
+		t.Errorf("Partition(100) = %s, want 190569292", got)
+	}
+	if got := Partition(int64(-1)); got.Sign() != 0 {
+		t.Errorf("Partition(-1) = %s, want 0", got)
+	}
+}
+
+func TestFactorizeSPF(t *testing.T) {
+	spf := prime_numbers.ListSmallestPrimeFactors(int64(1000))
+	for _, n := range []int64{1, 2, 360, 997, 1000} {
+		got := FactorizeSPF(n, spf)
+		want := Factorize(n)
+		if len(got) != len(want) {
+			t.Fatalf("FactorizeSPF(%d) = %v, want %v", n, got, want)
+		}
+		for p, exp := range want {
+			if got[p] != exp {
+				t.Errorf("FactorizeSPF(%d)[%d] = %d, want %d", n, p, got[p], exp)
+			}
+		}
+	}
+}
+
+func TestFactorizeSPFPanicsOnSmallOrInvalidSPF(t *testing.T) {
+	t.Run("table too small", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Fatal("FactorizeSPF did not panic for too-small SPF table")
+			}
+		}()
+		FactorizeSPF(int64(10), []int64{0, 0, 2, 3})
+	})
+
+	t.Run("invalid entry", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Fatal("FactorizeSPF did not panic for invalid SPF entry")
+			}
+		}()
+		FactorizeSPF(int64(4), []int64{0, 0, 2, 3, 0})
+	})
 }

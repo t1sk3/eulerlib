@@ -167,3 +167,29 @@ func TestSumPrimes(t *testing.T) {
 		t.Errorf("SumPrimes(0, 1) == %d, want %d", got, want)
 	}
 }
+
+func TestListSmallestPrimeFactors(t *testing.T) {
+	const n = 1000
+	spf := ListSmallestPrimeFactors(n)
+
+	if len(spf) != n+1 {
+		t.Fatalf("len(spf) == %d, want %d", len(spf), n+1)
+	}
+	if spf[0] != 0 || spf[1] != 0 {
+		t.Errorf("spf[0], spf[1] == %d, %d, want 0, 0", spf[0], spf[1])
+	}
+	for i := 2; i <= n; i++ {
+		p := spf[i]
+		if !IsPrime(p) {
+			t.Fatalf("spf[%d] = %d is not prime", i, p)
+		}
+		if i%p != 0 {
+			t.Fatalf("spf[%d] = %d does not divide %d", i, p, i)
+		}
+		for q := 2; q < p; q++ {
+			if i%q == 0 {
+				t.Fatalf("spf[%d] = %d, but %d is a smaller factor", i, p, q)
+			}
+		}
+	}
+}
