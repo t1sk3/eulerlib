@@ -56,14 +56,16 @@ func HexAreColinear[E utils.SignedInteger](p1, p2, p3 HexCoordinate[E]) bool {
 // (x == 0 or y == 0), since axis points belong to no quadrant.
 func Quadrant[E utils.SignedInteger](p Vector2[E]) int {
 	switch {
-	case p.X() > 0 && p.Y() >= 0:
+	case p.X() > 0 && p.Y() > 0:
 		return 1
-	case p.X() <= 0 && p.Y() > 0:
+	case p.X() < 0 && p.Y() > 0:
 		return 2
-	case p.X() < 0 && p.Y() <= 0:
+	case p.X() < 0 && p.Y() < 0:
 		return 3
-	default:
+	case p.X() > 0 && p.Y() < 0:
 		return 4
+	default:
+		return 0
 	}
 }
 

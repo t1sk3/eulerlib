@@ -286,7 +286,11 @@ func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
 		return 0, 0, false
 	}
 
-	x, m := remainders[0]%moduli[0], moduli[0]
+	x, m := remainders[0], moduli[0]
+	if m < 0 {
+		m = -m
+	}
+	x %= m
 	if x < 0 {
 		x += m
 	}
@@ -295,6 +299,13 @@ func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
 		r, n := remainders[i], moduli[i]
 		if n == 0 {
 			return 0, 0, false
+		}
+		if n < 0 {
+			n = -n
+		}
+		r %= n
+		if r < 0 {
+			r += n
 		}
 		g, p, _ := ExtGcd(m, n)
 		if (r-x)%g != 0 {

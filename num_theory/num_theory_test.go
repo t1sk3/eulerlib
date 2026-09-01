@@ -443,6 +443,8 @@ func TestModInverse(t *testing.T) {
 		{10, 17, 12, true}, // 10*12 = 120 ≡ 1 (mod 17)
 		{6, 9, 0, false},   // gcd(6,9) = 3, no inverse
 		{1, 1, 0, true},    // any x works mod 1; canonical is 0
+		{3, 0, 0, false},   // zero modulus is invalid
+		{3, -11, 4, true},  // negative modulus is normalized
 	}
 	for _, tc := range cases {
 		got, ok := ModInverse(tc.a, tc.m)
@@ -487,6 +489,14 @@ func TestCRT(t *testing.T) {
 	if _, _, ok := CRT([]int64{1, 2}, []int64{4}); ok {
 		t.Error("CRT with mismatched lengths ok = true, want false")
 	}
+
+	// Zero modulus is invalid.
+	if _, _, ok := CRT([]int64{1}, []int64{0}); ok {
+		t.Error("CRT with zero modulus ok = true, want false")
+	}
+	if _, _, ok := CRT([]int64{1, 2}, []int64{3, 0}); ok {
+		t.Error("CRT with zero modulus in later equation ok = true, want false")
+	}
 }
 
 func TestPartition(t *testing.T) {
@@ -519,4 +529,24 @@ func TestFactorizeSPF(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestFactorizeSPFPanicsOnSmallOrInvalidSPF(t *testing.T) {
+	t.Run("table too small", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Fatal("FactorizeSPF did not panic for too-small SPF table")
+			}
+		}()
+		FactorizeSPF(int64(10), []int64{0, 0, 2, 3})
+	})
+
+	t.Run("invalid entry", func(t *testing.T) {
+		defer func() {
+			if recover() == nil {
+				t.Fatal("FactorizeSPF did not panic for invalid SPF entry")
+			}
+		}()
+		FactorizeSPF(int64(4), []int64{0, 0, 2, 3, 0})
+	})
 }
