@@ -69,6 +69,15 @@ func MakeIntSlice[E utils.Integer](n E) []E {
 	return res
 }
 
+// MakeSliceOf generates a slice using the provided producer from 0..n
+func MakeSliceOf[E utils.Integer](n E, prod func(E) E) []E {
+	var res []E
+	for i := E(0); i < n; i++ {
+		res = append(res, prod(i))
+	}
+	return res
+}
+
 // Checks whether the given stringis a palindrome
 func IsPalindrome(s string) bool {
 	runes := []rune(s)
