@@ -256,6 +256,28 @@ func Totient[E utils.Integer](n E) E {
 	return res
 }
 
+// Phi returns φ(i)
+func Phi[E utils.Integer](n E) E {
+	if n <= 0 {
+		return 0
+	}
+
+	result := n
+	for p := E(2); p <= n/p; p++ {
+		if n%p != 0 {
+			continue
+		}
+		for n%p == 0 {
+			n /= p
+		}
+		result -= result / p
+	}
+	if n > 1 {
+		result -= result / n
+	}
+	return result
+}
+
 // ListTotients returns a slice of length n+1 where res[i] = φ(i) for i in [0,n].
 // Uses a sieve for O(n log log n) performance.
 func ListTotients[E utils.Integer](n E) []E {
