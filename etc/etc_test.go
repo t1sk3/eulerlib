@@ -25,6 +25,37 @@ func TestListTotients(t *testing.T) {
 	}
 }
 
+func TestPhi(t *testing.T) {
+	// φ: 0,1,1,2,2,4,2,6,4,6
+	cases := []struct{ n, want int64 }{
+		{0, 0}, {1, 1}, {2, 1}, {3, 2}, {4, 2},
+		{5, 4}, {6, 2}, {7, 6}, {8, 4}, {9, 6},
+		{-1, 0}, {-5, 0},
+	}
+	for _, tc := range cases {
+		if got := Phi(tc.n); got != tc.want {
+			t.Errorf("Phi(%d) = %d, want %d", tc.n, got, tc.want)
+		}
+	}
+}
+
+func TestPhiMatchesTotient(t *testing.T) {
+	for n := int64(1); n <= 100; n++ {
+		if got, want := Phi(n), Totient(n); got != want {
+			t.Errorf("Phi(%d) = %d, Totient(%d) = %d; want equal", n, got, n, want)
+		}
+	}
+}
+
+func TestPhiMatchesListTotients(t *testing.T) {
+	list := ListTotients(int64(50))
+	for n := int64(0); n <= 50; n++ {
+		if got, want := Phi(n), list[n]; got != want {
+			t.Errorf("Phi(%d) = %d, ListTotients(50)[%d] = %d; want equal", n, got, n, want)
+		}
+	}
+}
+
 func TestAbs(t *testing.T) {
 	cases := []struct{ n, want int64 }{
 		{0, 0}, {5, 5}, {-5, 5}, {-100, 100},

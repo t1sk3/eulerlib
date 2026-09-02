@@ -196,8 +196,8 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `h.Q()`, `h.R()` | Axial coordinate accessors (aliases for the inherited `X()`/`Y()`) |
 | `h.S()` | Third cube coordinate, `s = -q-r` |
 | `HexAreColinear(p1, p2, p3)` | True if `p1`, `p2`, and `p3` all lie on a common line on the hex grid |
-| `Quadrant(p)` | Standard 1–4 quadrant number of `p`, or 0 if `p` lies on either axis |
-| `SameQuadrant(p1, p2)` | True if `p1` and `p2` lie in the same of the four standard quadrants (false if either is on an axis) |
+| `Quadrant(p)` | Standard 1–4 quadrant number of `p`, sweeping counterclockwise from the positive x-axis; each quadrant includes its lower (starting) boundary and excludes its upper one, so axis points belong to the quadrant they start (origin is quadrant IV by convention) |
+| `SameQuadrant(p1, p2)` | True if `p1` and `p2` lie in the same of the four quadrants returned by `Quadrant` |
 | `HexSameQuadrant(p1, p2)` | True if `p1` and `p2` lie in the same quadrant of the axial (q, r) coordinate system |
 | `CartesianToHex(p)` | Converts a cartesian point to fractional axial hex coordinates (unit-size, pointy-top hexagons; requires `Float`) |
 | `HexToCartesian(h)` | Converts axial hex coordinates to a cartesian point (inverse of `CartesianToHex`; requires `Float`) |

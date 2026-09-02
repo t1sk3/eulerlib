@@ -51,31 +51,34 @@ func HexAreColinear[E utils.SignedInteger](p1, p2, p3 HexCoordinate[E]) bool {
 	return AreColinear(p1.Vector2, p2.Vector2, p3.Vector2)
 }
 
-// Quadrant returns the standard 1–4 quadrant number for p (I: x>0, y>0;
-// II: x<0, y>0; III: x<0, y<0; IV: x>0, y<0), or 0 if p lies on either axis
-// (x == 0 or y == 0), since axis points belong to no quadrant.
+// Quadrant returns the standard 1–4 quadrant number for p, sweeping
+// counterclockwise from the positive x-axis: quadrant I spans [0°, 90°),
+// II spans [90°, 180°), III spans [180°, 270°), and IV spans [270°, 360°).
+// Each quadrant is inclusive of its starting (lower) boundary and
+// exclusive of its ending (upper) boundary, so a point lying exactly on an
+// axis belongs to whichever quadrant that axis starts: the positive
+// x-axis (x>0, y=0) is quadrant I, the positive y-axis (x=0, y>0) is
+// quadrant II, the negative x-axis (x<0, y=0) is quadrant III, and the
+// negative y-axis (x=0, y<0) is quadrant IV. The origin (0, 0) lies on all
+// four boundaries at once and is conventionally assigned quadrant IV.
 func Quadrant[E utils.SignedInteger](p Vector2[E]) int {
 	switch {
-	case p.X() > 0 && p.Y() > 0:
+	case p.X() > 0 && p.Y() >= 0:
 		return 1
-	case p.X() < 0 && p.Y() > 0:
+	case p.X() <= 0 && p.Y() > 0:
 		return 2
-	case p.X() < 0 && p.Y() < 0:
+	case p.X() < 0 && p.Y() <= 0:
 		return 3
-	case p.X() > 0 && p.Y() < 0:
-		return 4
 	default:
-		return 0
+		return 4
 	}
 }
 
 // SameQuadrant reports whether p1 and p2 lie in the same one of the four
-// standard quadrants. Points on an axis (x == 0 or y == 0) belong to no
-// quadrant, so SameQuadrant is false whenever either point lies on an
-// axis — even if p1 and p2 are equal.
+// quadrants returned by Quadrant — see its doc comment for the boundary
+// convention that axis points (and the origin) are assigned under.
 func SameQuadrant[E utils.SignedInteger](p1, p2 Vector2[E]) bool {
-	q := Quadrant(p1)
-	return q != 0 && q == Quadrant(p2)
+	return Quadrant(p1) == Quadrant(p2)
 }
 
 // HexSameQuadrant reports whether p1 and p2 lie in the same quadrant of the

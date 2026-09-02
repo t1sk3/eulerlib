@@ -256,6 +256,16 @@ func Totient[E utils.Integer](n E) E {
 	return res
 }
 
+// Phi returns Euler's totient φ(n): the count of integers in [1,n] coprime to n.
+//
+// It is an alias for Totient, with a defined result of 0 for n <= 0.
+func Phi[E utils.Integer](n E) E {
+	if n <= 0 {
+		return 0
+	}
+	return Totient(n)
+}
+
 // ListTotients returns a slice of length n+1 where res[i] = φ(i) for i in [0,n].
 // Uses a sieve for O(n log log n) performance.
 func ListTotients[E utils.Integer](n E) []E {
