@@ -69,8 +69,10 @@ func Quadrant[E utils.SignedInteger](p Vector2[E]) int {
 		return 2
 	case p.X() < 0 && p.Y() <= 0:
 		return 3
-	default: // p.X() >= 0 && p.Y() < 0, including the origin
+	case p.X() >= 0 && p.Y() < 0:
 		return 4
+	default:
+		return 0
 	}
 }
 

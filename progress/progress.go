@@ -24,7 +24,10 @@ func WithWidth(width int) Option {
 
 // WithWriter sets where the bar is rendered (default os.Stderr).
 func WithWriter(w io.Writer) Option {
-	return progressbar.OptionSetWriter(w)
+	return func(pb *progressbar.ProgressBar) {
+		progressbar.OptionSetWriter(w)(pb)
+		progressbar.OptionOnCompletion(func() { fmt.Fprintln(w) })(pb)
+	}
 }
 
 // WithLabel sets a description printed before the bar.
@@ -82,10 +85,10 @@ func ProgressBarN(n int, opts ...Option) iter.Seq[int] {
 	return func(yield func(int) bool) {
 		defer bar.Finish()
 		for i := 0; i < n; i++ {
+			bar.Add(1)
 			if !yield(i) {
 				return
 			}
-			bar.Add(1)
 		}
 	}
 }
@@ -106,10 +109,10 @@ func Spinner(opts ...Option) iter.Seq[int] {
 	return func(yield func(int) bool) {
 		defer bar.Finish()
 		for i := 0; ; i++ {
+			bar.Add(1)
 			if !yield(i) {
 				return
 			}
-			bar.Add(1)
 		}
 	}
 }
