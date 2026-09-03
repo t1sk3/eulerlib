@@ -36,6 +36,7 @@ vector.NewVector([]int{1, 2, 3}) // *Vector[int]
 | `progress` | `.../v2/progress` | Live progress bar (and open-ended spinner) for `range` loops over a slice or a count |
 | `stopwatch` | `.../v2/stopwatch` | Timing helper for benchmarking brute-force runs |
 | `memo` | `.../v2/memo` | Generic memoization wrappers for recursive/DP-style brute forces |
+| `plot` | `.../v2/plot` | Interactive HTML 2D/3D scatter plots (via ECharts) for visualizing data points |
 
 Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/v2) comments on every exported symbol.
 
@@ -295,6 +296,28 @@ fib = memo.Memoize(func(n int) int64 {
 	return fib(n-1) + fib(n-2)
 })
 ```
+
+### Plotting — `plot`
+
+| Function | Description |
+|---|---|
+| `Scatter2D(points, path, opts...)` | Renders `[]Point2D[E]{X, Y, Label}` as an interactive HTML scatter plot, returns the HTML and (if `path != ""`) writes it to file |
+| `Scatter3D(points, path, opts...)` | Renders `[]Point3D[E]{X, Y, Z, Label}` as an interactive HTML 3D scatter plot (orbit/zoom/pan), same return/write behavior |
+| `SaveCSV2D(points, path)` | Writes `[]Point2D[E]` to `path` as CSV (`x,y,label`) for batch-processing elsewhere |
+| `SaveCSV3D(points, path)` | Writes `[]Point3D[E]` to `path` as CSV (`x,y,z,label`) for batch-processing elsewhere |
+
+Charts are built with [go-echarts](https://github.com/go-echarts/go-echarts) (ECharts + echarts-gl for 3D) and rendered as a single self-contained HTML file — open it in a browser to hover points for a tooltip, scroll/drag to zoom and pan, and, for `Scatter3D`, drag to orbit. A point's `Label` is optional; leave it empty to plot a bare point.
+
+```go
+pts := []plot.Point2D[int]{
+    {X: 1, Y: 1, Label: "A"},
+    {X: 2, Y: 4},
+    {X: 3, Y: 9, Label: "C"},
+}
+plot.Scatter2D(pts, "points.html", plot.WithTitle("y = x^2"), plot.WithXLabel("x"), plot.WithYLabel("y"))
+```
+
+Options: `WithTitle`, `WithXLabel`, `WithYLabel`, `WithZLabel` (3D only), `WithSize(width, height)`, `WithPointSize(size)`, `WithColor(color)`, `WithTheme(theme)` (any [built-in ECharts theme](https://echarts.apache.org/en/theme-builder.html), e.g. `"dark"`, `"vintage"`, `"macarons"`).
 
 ### Type Utilities — `utils`
 

@@ -4,6 +4,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fxtlabs/primes v0.0.0-20150821004651-dad82d10a449 h1:HOYnhuVrhAVGKdg3rZapII640so7QfXQmkLkefUN/uM=
 github.com/fxtlabs/primes v0.0.0-20150821004651-dad82d10a449/go.mod h1:i+vbdOOivRRh2j+WwBkjZXloGN/+KAqfKDwNfUJeugc=
+github.com/go-echarts/go-echarts/v2 v2.7.2 h1:lhypL1CekgqaLHM5V7fBPfaYGfimJ9dGylkk65aWlNI=
+github.com/go-echarts/go-echarts/v2 v2.7.2/go.mod h1:Z+spPygZRIEyqod69r0WMnkN5RV3MwhYDtw601w3G8w=
 github.com/mattn/go-runewidth v0.0.16 h1:E5ScNMtiwvlvB5paMFdw9p4kSQzbXFikJ5SQO6TULQc=
 github.com/mattn/go-runewidth v0.0.16/go.mod h1:Jdepj2loyihRzMpdS35Xk/zdY8IAYHsh153qUoGf23w=
 github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db h1:62I3jR2EmQ4l5rM/4FEfDWcRD+abF5XlKShorW5LRoQ=
