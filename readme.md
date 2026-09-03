@@ -303,6 +303,8 @@ fib = memo.Memoize(func(n int) int64 {
 |---|---|
 | `Scatter2D(points, path, opts...)` | Renders `[]Point2D[E]{X, Y, Label}` as an interactive HTML scatter plot, returns the HTML and (if `path != ""`) writes it to file |
 | `Scatter3D(points, path, opts...)` | Renders `[]Point3D[E]{X, Y, Z, Label}` as an interactive HTML 3D scatter plot (orbit/zoom/pan), same return/write behavior |
+| `SaveCSV2D(points, path)` | Writes `[]Point2D[E]` to `path` as CSV (`x,y,label`) for batch-processing elsewhere |
+| `SaveCSV3D(points, path)` | Writes `[]Point3D[E]` to `path` as CSV (`x,y,z,label`) for batch-processing elsewhere |
 
 Charts are built with [go-echarts](https://github.com/go-echarts/go-echarts) (ECharts + echarts-gl for 3D) and rendered as a single self-contained HTML file — open it in a browser to hover points for a tooltip, scroll/drag to zoom and pan, and, for `Scatter3D`, drag to orbit. A point's `Label` is optional; leave it empty to plot a bare point.
 
