@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	github.com/fxtlabs/primes v0.0.0-20150821004651-dad82d10a449
+	github.com/go-echarts/go-echarts/v2 v2.7.2
 	github.com/schollz/progressbar/v3 v3.18.0
 )
 

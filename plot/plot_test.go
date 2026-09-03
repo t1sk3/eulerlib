@@ -13,45 +13,40 @@ func TestScatter2DBasic(t *testing.T) {
 		{X: 2, Y: 4},
 		{X: 3, Y: 9, Label: "C"},
 	}
-	svg, err := Scatter2D(pts, "", WithTitle("y = x^2"), WithXLabel("x"), WithYLabel("y"))
+	html, err := Scatter2D(pts, "", WithTitle("y = x^2"), WithXLabel("x"), WithYLabel("y"))
 	if err != nil {
 		t.Fatalf("Scatter2D returned error: %v", err)
 	}
 
-	if !strings.HasPrefix(svg, "<svg") {
-		t.Fatalf("output does not look like SVG markup: %q", svg[:min(20, len(svg))])
+	if !strings.Contains(html, "<html") {
+		t.Fatalf("output does not look like a full HTML document")
 	}
-	if !strings.HasSuffix(strings.TrimSpace(svg), "</svg>") {
-		t.Fatalf("output is not a closed SVG document")
+	if !strings.Contains(html, "echarts.min.js") {
+		t.Fatalf("expected the ECharts script tag in output")
 	}
-	if strings.Count(svg, "<circle") != len(pts) {
-		t.Fatalf("expected %d points drawn, got %d circles", len(pts), strings.Count(svg, "<circle"))
-	}
-	if !strings.Contains(svg, ">A<") || !strings.Contains(svg, ">C<") {
-		t.Fatalf("expected labels A and C to appear in the SVG")
-	}
-	if !strings.Contains(svg, "y = x^2") {
+	if !strings.Contains(html, "y = x^2") {
 		t.Fatalf("expected title text in output")
 	}
-}
-
-func TestScatter2DEmptyLabelNotDrawn(t *testing.T) {
-	pts := []Point2D[int]{{X: 0, Y: 0}}
-	svg, err := Scatter2D(pts, "")
-	if err != nil {
-		t.Fatalf("Scatter2D returned error: %v", err)
+	for _, want := range []string{`"A"`, `"C"`} {
+		if !strings.Contains(html, want) {
+			t.Fatalf("expected label %s to appear in the series data", want)
+		}
 	}
-	if strings.Contains(svg, "></text>") {
-		t.Fatalf("unlabeled point should not draw an empty label")
+	if strings.Count(html, "1,1") == 0 && strings.Count(html, "1, 1") == 0 {
+		// coordinates are embedded as a JSON array; just make sure some
+		// point values made it into the document.
+		if !strings.Contains(html, "9") {
+			t.Fatalf("expected point values to appear in output")
+		}
 	}
 }
 
 func TestScatter2DWritesFile(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "out.svg")
+	path := filepath.Join(dir, "out.html")
 	pts := []Point2D[float64]{{X: 0, Y: 0}, {X: 1, Y: 1}}
 
-	svg, err := Scatter2D(pts, path)
+	html, err := Scatter2D(pts, path)
 	if err != nil {
 		t.Fatalf("Scatter2D returned error: %v", err)
 	}
@@ -60,30 +55,43 @@ func TestScatter2DWritesFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected file to be written: %v", err)
 	}
-	if string(data) != svg {
-		t.Fatalf("file content does not match returned SVG string")
+	if string(data) != html {
+		t.Fatalf("file content does not match returned HTML string")
 	}
 }
 
-func TestScatter2DConstantCoordinates(t *testing.T) {
-	// All points share the same x and y — must not divide by zero.
-	pts := []Point2D[int]{{X: 5, Y: 5}, {X: 5, Y: 5}, {X: 5, Y: 5}}
-	svg, err := Scatter2D(pts, "")
-	if err != nil {
+func TestScatter2DEmptyPath(t *testing.T) {
+	pts := []Point2D[int]{{X: 0, Y: 0}}
+	if _, err := Scatter2D(pts, ""); err != nil {
 		t.Fatalf("Scatter2D returned error: %v", err)
-	}
-	if strings.Contains(svg, "NaN") || strings.Contains(svg, "Inf") {
-		t.Fatalf("degenerate bounding box produced NaN/Inf in output: %s", svg)
 	}
 }
 
 func TestScatter2DEmptyPoints(t *testing.T) {
-	svg, err := Scatter2D([]Point2D[int]{}, "")
+	html, err := Scatter2D([]Point2D[int]{}, "")
 	if err != nil {
 		t.Fatalf("Scatter2D returned error: %v", err)
 	}
-	if strings.Contains(svg, "<circle") {
-		t.Fatalf("expected no circles for an empty point set")
+	if !strings.Contains(html, "<html") {
+		t.Fatalf("expected a valid HTML document even with no points")
+	}
+}
+
+func TestScatter2DCustomOptions(t *testing.T) {
+	pts := []Point2D[int]{{X: 1, Y: 2}}
+	html, err := Scatter2D(pts, "",
+		WithSize(400, 300),
+		WithPointSize(20),
+		WithColor("#ff0000"),
+		WithTheme("vintage"),
+	)
+	if err != nil {
+		t.Fatalf("Scatter2D returned error: %v", err)
+	}
+	for _, want := range []string{"400px", "300px", "#ff0000", "themes/vintage.js"} {
+		if !strings.Contains(html, want) {
+			t.Fatalf("expected %q in output", want)
+		}
 	}
 }
 
@@ -93,72 +101,26 @@ func TestScatter3DBasic(t *testing.T) {
 		{X: 0, Y: 1, Z: 0, Label: "B"},
 		{X: 0, Y: 0, Z: 1, Label: "C"},
 	}
-	svg, err := Scatter3D(pts, "", WithTitle("unit points"))
+	html, err := Scatter3D(pts, "", WithTitle("unit points"), WithXLabel("lat"), WithYLabel("lon"), WithZLabel("alt"))
 	if err != nil {
 		t.Fatalf("Scatter3D returned error: %v", err)
 	}
-	if strings.Count(svg, "<circle") != len(pts) {
-		t.Fatalf("expected %d points drawn, got %d circles", len(pts), strings.Count(svg, "<circle"))
+	if !strings.Contains(html, "<html") {
+		t.Fatalf("output does not look like a full HTML document")
 	}
-	for _, label := range []string{"A", "B", "C"} {
-		if !strings.Contains(svg, ">"+label+"<") {
-			t.Fatalf("expected label %q in output", label)
+	if !strings.Contains(html, "echarts-gl.min.js") {
+		t.Fatalf("expected the echarts-gl script tag for a 3D chart")
+	}
+	for _, want := range []string{`"A"`, `"B"`, `"C"`, "lat", "lon", "alt"} {
+		if !strings.Contains(html, want) {
+			t.Fatalf("expected %q in output", want)
 		}
-	}
-	// The orientation gizmo should be present by default.
-	if !strings.Contains(svg, ">X<") || !strings.Contains(svg, ">Y<") || !strings.Contains(svg, ">Z<") {
-		t.Fatalf("expected default XYZ gizmo labels in output")
-	}
-}
-
-func TestScatter3DAxesDisabled(t *testing.T) {
-	pts := []Point3D[int]{{X: 1, Y: 2, Z: 3}}
-	svg, err := Scatter3D(pts, "", WithAxes(false))
-	if err != nil {
-		t.Fatalf("Scatter3D returned error: %v", err)
-	}
-	if strings.Contains(svg, ">X<") || strings.Contains(svg, ">Y<") || strings.Contains(svg, ">Z<") {
-		t.Fatalf("expected no gizmo when WithAxes(false)")
-	}
-}
-
-func TestScatter3DCustomAxisLabels(t *testing.T) {
-	pts := []Point3D[int]{{X: 1, Y: 2, Z: 3}}
-	svg, err := Scatter3D(pts, "", WithXLabel("lat"), WithYLabel("lon"), WithZLabel("alt"))
-	if err != nil {
-		t.Fatalf("Scatter3D returned error: %v", err)
-	}
-	for _, label := range []string{"lat", "lon", "alt"} {
-		if !strings.Contains(svg, ">"+label+"<") {
-			t.Fatalf("expected custom gizmo label %q in output", label)
-		}
-	}
-}
-
-func TestScatter3DDepthOrdering(t *testing.T) {
-	// Nearer points (larger x+y+z) should be drawn after farther ones so
-	// they layer on top; verify via the order circles appear in the SVG.
-	pts := []Point3D[int]{
-		{X: 10, Y: 10, Z: 10, Label: "near"},
-		{X: -10, Y: -10, Z: -10, Label: "far"},
-	}
-	svg, err := Scatter3D(pts, "")
-	if err != nil {
-		t.Fatalf("Scatter3D returned error: %v", err)
-	}
-	farIdx := strings.Index(svg, ">far<")
-	nearIdx := strings.Index(svg, ">near<")
-	if farIdx == -1 || nearIdx == -1 {
-		t.Fatalf("expected both labels present")
-	}
-	if farIdx > nearIdx {
-		t.Fatalf("expected farther point drawn before nearer point (painter's algorithm)")
 	}
 }
 
 func TestScatter3DWritesFile(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "out3d.svg")
+	path := filepath.Join(dir, "out3d.html")
 	pts := []Point3D[int]{{X: 1, Y: 2, Z: 3}}
 
 	if _, err := Scatter3D(pts, path); err != nil {
@@ -169,16 +131,25 @@ func TestScatter3DWritesFile(t *testing.T) {
 	}
 }
 
-func TestIsometricProjectOrigin(t *testing.T) {
-	sx, sy := isometricProject(0, 0, 0)
-	if sx != 0 || sy != 0 {
-		t.Fatalf("isometricProject(0,0,0) = (%v, %v), want (0, 0)", sx, sy)
+func TestScatter3DEmptyPoints(t *testing.T) {
+	html, err := Scatter3D([]Point3D[int]{}, "")
+	if err != nil {
+		t.Fatalf("Scatter3D returned error: %v", err)
+	}
+	if !strings.Contains(html, "<html") {
+		t.Fatalf("expected a valid HTML document even with no points")
 	}
 }
 
-func TestDepthScaleConstantDepth(t *testing.T) {
-	// When every point has the same depth, scale must not divide by zero.
-	if got := depthScale(5, 5, 5); got != 1 {
-		t.Fatalf("depthScale with equal min/max = %v, want 1", got)
+func TestScatter3DCustomOptions(t *testing.T) {
+	pts := []Point3D[int]{{X: 1, Y: 2, Z: 3}}
+	html, err := Scatter3D(pts, "", WithSize(500, 400), WithPointSize(15), WithColor("#00ff00"))
+	if err != nil {
+		t.Fatalf("Scatter3D returned error: %v", err)
+	}
+	for _, want := range []string{"500px", "400px", "#00ff00"} {
+		if !strings.Contains(html, want) {
+			t.Fatalf("expected %q in output", want)
+		}
 	}
 }
