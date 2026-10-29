@@ -1,21 +1,21 @@
 package vector
 
-import "github.com/t1sk3/eulerlib/v2/utils"
+import "github.com/t1sk3/go-utils/types/constraints"
 
 // Vector3 is a 3-dimensional vector. It embeds Vector to inherit the
 // element-wise arithmetic operations, and adds named X/Y/Z accessors and the
 // 3D cross product.
-type Vector3[E utils.SignedNumber] struct {
+type Vector3[E constraints.SignedNumber] struct {
 	Vector[E]
 }
 
 // NewVector3 creates a 3D vector from its x, y, and z components.
-func NewVector3[E utils.SignedNumber](x, y, z E) *Vector3[E] {
+func NewVector3[E constraints.SignedNumber](x, y, z E) *Vector3[E] {
 	return &Vector3[E]{Vector[E]{elements: []E{x, y, z}}}
 }
 
 // AsVector3 adopts an existing Vector (no copy — they share backing storage).
-func AsVector3[E utils.SignedNumber](v *Vector[E]) *Vector3[E] {
+func AsVector3[E constraints.SignedNumber](v *Vector[E]) *Vector3[E] {
 	if v.Len() != 3 {
 		panic("vector is not of length 3")
 	}

@@ -3,10 +3,10 @@
 package pythagoras
 
 import (
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // IsTriplet returns true if (a, b, c) is a Pythagorean triplet, i.e. a²+b²=c².
-func IsTriplet[E utils.Integer](a E, b E, c E) bool {
+func IsTriplet[E constraints.Integer](a E, b E, c E) bool {
 	return c*c == b*b+a*a
 }

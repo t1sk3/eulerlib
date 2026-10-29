@@ -6,7 +6,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	eopts "github.com/go-echarts/go-echarts/v2/opts"
 
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // Scatter2D renders points as an interactive HTML scatter plot — built
@@ -26,7 +26,7 @@ import (
 //	    {X: 3, Y: 9, Label: "C"},
 //	}
 //	html, err := plot.Scatter2D(pts, "points.html", plot.WithTitle("y = x^2"))
-func Scatter2D[E utils.RealNumber](points []Point2D[E], path string, opts ...Option) (string, error) {
+func Scatter2D[E constraints.Number](points []Point2D[E], path string, opts ...Option) (string, error) {
 	cfg := newConfig(opts...)
 
 	data := make([]eopts.ScatterData, len(points))

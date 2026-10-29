@@ -3,12 +3,12 @@
 package sequences
 
 import (
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // Collatz returns the full Collatz sequence starting from n until it reaches 1.
 // Returns an empty slice for n <= 0.
-func Collatz[E utils.SignedInteger](n E) []E {
+func Collatz[E constraints.Signed](n E) []E {
 	if n <= 0 {
 		return []E{}
 	}
@@ -26,7 +26,7 @@ func Collatz[E utils.SignedInteger](n E) []E {
 
 // CollatzLength returns the number of steps in the Collatz sequence starting from n.
 // Returns 0 for n <= 0.
-func CollatzLength[E utils.SignedInteger](n E) int {
+func CollatzLength[E constraints.Signed](n E) int {
 	if n <= 0 {
 		return 0
 	}

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // SaveCSV2D writes points to path as CSV — one row per point, columns
 // "x,y,label" — for batch-processing elsewhere (a spreadsheet, pandas,
 // another program). The label column is empty for points with no Label.
-func SaveCSV2D[E utils.RealNumber](points []Point2D[E], path string) error {
+func SaveCSV2D[E constraints.Number](points []Point2D[E], path string) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func SaveCSV2D[E utils.RealNumber](points []Point2D[E], path string) error {
 // SaveCSV3D writes points to path as CSV — one row per point, columns
 // "x,y,z,label" — for batch-processing elsewhere (a spreadsheet, pandas,
 // another program). The label column is empty for points with no Label.
-func SaveCSV3D[E utils.RealNumber](points []Point3D[E], path string) error {
+func SaveCSV3D[E constraints.Number](points []Point3D[E], path string) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -57,6 +57,6 @@ func SaveCSV3D[E utils.RealNumber](points []Point3D[E], path string) error {
 // formatNumber renders n with Go's default numeric formatting. Unlike a
 // float64 conversion, this keeps large integer types (e.g. int64) exact
 // instead of losing precision above 2^53.
-func formatNumber[E utils.RealNumber](n E) string {
+func formatNumber[E constraints.Number](n E) string {
 	return fmt.Sprintf("%v", n)
 }

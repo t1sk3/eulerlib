@@ -6,12 +6,13 @@ import (
 	"math"
 
 	"github.com/t1sk3/eulerlib/v2/etc"
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/stream"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // PrimeNumberIterator steps through the primes one at a time, starting from
 // its current value. Use NewPrimeNumberIterator to create one.
-type PrimeNumberIterator[E utils.Integer] struct {
+type PrimeNumberIterator[E constraints.Integer] struct {
 	current E
 }
 
@@ -40,7 +41,7 @@ func (p *PrimeNumberIterator[E]) Reset() {
 // starting just before the given value so the first call to Next returns the
 // next prime after it. At most one starting value may be given; with none,
 // the iterator starts at 0.
-func NewPrimeNumberIterator[E utils.Integer](params ...E) *PrimeNumberIterator[E] {
+func NewPrimeNumberIterator[E constraints.Integer](params ...E) *PrimeNumberIterator[E] {
 	if len(params) > 1 {
 		panic("Too many arguments")
 	}
@@ -51,7 +52,7 @@ func NewPrimeNumberIterator[E utils.Integer](params ...E) *PrimeNumberIterator[E
 }
 
 // checks to see if the given number is a prime
-func IsPrime[E utils.Integer](p E) bool {
+func IsPrime[E constraints.Integer](p E) bool {
 	end := E(math.Sqrt(float64(p)))
 	if end*end == p {
 		return false
@@ -72,7 +73,7 @@ func IsPrime[E utils.Integer](p E) bool {
 }
 
 // Returns a slice where at every index the boolean in that place indicates whether or not the index is a prime number
-func ListPrimality[E utils.Integer](n E) []bool {
+func ListPrimality[E constraints.Integer](n E) []bool {
 	if n < 0 {
 		panic("n must be positive")
 	}
@@ -103,7 +104,7 @@ func ListPrimality[E utils.Integer](n E) []bool {
 // table lets you factorize any number in [0, n] in O(log n) via
 // num_theory.FactorizeSPF instead of trial division, handy when a
 // brute-force search needs to factorize many numbers in that range.
-func ListSmallestPrimeFactors[E utils.Integer](n E) []E {
+func ListSmallestPrimeFactors[E constraints.Integer](n E) []E {
 	if n < 0 {
 		panic("n must be positive")
 	}
@@ -121,7 +122,7 @@ func ListSmallestPrimeFactors[E utils.Integer](n E) []E {
 }
 
 // Lists all primes up to n
-func ListPrimes[E utils.Integer](n E) (res []E) {
+func ListPrimes[E constraints.Integer](n E) (res []E) {
 	for i, p := range ListPrimality(n) {
 		if p {
 			res = append(res, E(i))
@@ -131,7 +132,7 @@ func ListPrimes[E utils.Integer](n E) (res []E) {
 }
 
 // Returns a generator that generates prime numbers
-func PrimeGenerator[E utils.Integer](limit E) <-chan E {
+func PrimeGenerator[E constraints.Integer](limit E) <-chan E {
 	chnl := make(chan E)
 	p := NewPrimeNumberIterator[E]()
 	go func() {
@@ -144,7 +145,7 @@ func PrimeGenerator[E utils.Integer](limit E) <-chan E {
 }
 
 // Returns the next prime after n
-func NextPrime[E utils.Integer](n E) E {
+func NextPrime[E constraints.Integer](n E) E {
 	if n < 2 {
 		return 2
 	}
@@ -164,7 +165,7 @@ func NextPrime[E utils.Integer](n E) E {
 }
 
 // Sums primes between s and e
-func SumPrimes[E utils.Integer](s E, e E) (res E) {
+func SumPrimes[E constraints.Integer](s E, e E) (res E) {
 	current := NextPrime(s - 1)
 	if current > e {
 		return 0
@@ -182,7 +183,7 @@ func SumPrimes[E utils.Integer](s E, e E) (res E) {
 }
 
 // Counts how many primes exist between s and e
-func PrimeCount[E utils.Integer](s E, e E) (res E) {
+func PrimeCount[E constraints.Integer](s E, e E) (res E) {
 	for i := s; i <= e; i++ {
 		if IsPrime(i) {
 			res += 1
@@ -192,11 +193,7 @@ func PrimeCount[E utils.Integer](s E, e E) (res E) {
 }
 
 // Returns the first n prime numbers
-func FirstNPrimes[E utils.Integer](n E) []E {
-	res := make([]E, n)
+func FirstNPrimes[E constraints.Integer](n E) []E {
 	p := NewPrimeNumberIterator[E]()
-	for i := E(0); i < n; i++ {
-		res[i] = p.Next()
-	}
-	return res
+	return stream.Generate(p.Next).Limit(int(n)).ToSlice()
 }

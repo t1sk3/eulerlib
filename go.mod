@@ -1,11 +1,13 @@
 module github.com/t1sk3/eulerlib/v2
 
-go 1.23
+go 1.24.8
 
 require (
 	github.com/fxtlabs/primes v0.0.0-20150821004651-dad82d10a449
 	github.com/go-echarts/go-echarts/v2 v2.7.2
 	github.com/schollz/progressbar/v3 v3.18.0
+	github.com/t1sk3/go-utils v0.1.0
+	github.com/t1sk3/go-utils/types v0.1.0
 )
 
 require (

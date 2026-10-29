@@ -3,14 +3,14 @@ package vector
 import (
 	"math"
 
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // AreColinear reports whether p1, p2, and p3 all lie on a common line —
 // equivalently, the vectors p2-p1 and p3-p1 are parallel (their perp-dot
 // product is zero). For floating-point vectors, compare Cross(...) to 0
 // with a tolerance.
-func AreColinear[E utils.SignedInteger](p1, p2, p3 Vector2[E]) bool {
+func AreColinear[E constraints.Signed](p1, p2, p3 Vector2[E]) bool {
 	v1 := p2.Sub(p1)
 	v2 := p3.Sub(p1)
 	return v1.Cross(*v2) == 0
@@ -20,12 +20,12 @@ func AreColinear[E utils.SignedInteger](p1, p2, p3 Vector2[E]) bool {
 // standard two-axis system used to address cells of a hexagonal grid. It
 // embeds Vector2 to reuse vector arithmetic (Add, Sub, Cross, ...); use
 // Q()/R() rather than the inherited X()/Y() for hex-grid clarity.
-type HexCoordinate[E utils.SignedNumber] struct {
+type HexCoordinate[E constraints.SignedNumber] struct {
 	Vector2[E]
 }
 
 // NewHexCoordinate creates an axial hex coordinate from q and r.
-func NewHexCoordinate[E utils.SignedNumber](q, r E) *HexCoordinate[E] {
+func NewHexCoordinate[E constraints.SignedNumber](q, r E) *HexCoordinate[E] {
 	return &HexCoordinate[E]{Vector2[E]{Vector[E]{elements: []E{q, r}}}}
 }
 
@@ -47,7 +47,7 @@ func (h *HexCoordinate[E]) S() E { return -h.Q() - h.R() }
 // linear map, cross(A*u, A*v) = det(A) * cross(u, v). Since det(A) != 0,
 // the perp-dot product of the axial differences is zero exactly when the
 // corresponding cartesian points are colinear.
-func HexAreColinear[E utils.SignedInteger](p1, p2, p3 HexCoordinate[E]) bool {
+func HexAreColinear[E constraints.Signed](p1, p2, p3 HexCoordinate[E]) bool {
 	return AreColinear(p1.Vector2, p2.Vector2, p3.Vector2)
 }
 
@@ -61,7 +61,7 @@ func HexAreColinear[E utils.SignedInteger](p1, p2, p3 HexCoordinate[E]) bool {
 // quadrant II, the negative x-axis (x<0, y=0) is quadrant III, and the
 // negative y-axis (x=0, y<0) is quadrant IV. The origin (0, 0) lies on all
 // four boundaries at once and is conventionally assigned quadrant IV.
-func Quadrant[E utils.SignedInteger](p Vector2[E]) int {
+func Quadrant[E constraints.Signed](p Vector2[E]) int {
 	switch {
 	case p.X() > 0 && p.Y() >= 0:
 		return 1
@@ -77,7 +77,7 @@ func Quadrant[E utils.SignedInteger](p Vector2[E]) int {
 // SameQuadrant reports whether p1 and p2 lie in the same one of the four
 // quadrants returned by Quadrant — see its doc comment for the boundary
 // convention that axis points (and the origin) are assigned under.
-func SameQuadrant[E utils.SignedInteger](p1, p2 Vector2[E]) bool {
+func SameQuadrant[E constraints.Signed](p1, p2 Vector2[E]) bool {
 	return Quadrant(p1) == Quadrant(p2)
 }
 
@@ -90,7 +90,7 @@ func SameQuadrant[E utils.SignedInteger](p1, p2 Vector2[E]) bool {
 // orthogonal, so the axial quadrants do not coincide with the cartesian
 // ones under HexToCartesian. It is a partition of the hex grid in its own
 // right.
-func HexSameQuadrant[E utils.SignedInteger](p1, p2 HexCoordinate[E]) bool {
+func HexSameQuadrant[E constraints.Signed](p1, p2 HexCoordinate[E]) bool {
 	return SameQuadrant(p1.Vector2, p2.Vector2)
 }
 
@@ -98,7 +98,7 @@ func HexSameQuadrant[E utils.SignedInteger](p1, p2 HexCoordinate[E]) bool {
 // coordinates, assuming unit-size (circumradius 1), pointy-top hexagons
 // centered on the origin. The result is generally fractional — round it
 // with RoundHex to snap it to the containing hex cell.
-func CartesianToHex[E utils.Float](p Vector2[E]) *HexCoordinate[E] {
+func CartesianToHex[E constraints.Float](p Vector2[E]) *HexCoordinate[E] {
 	sqrt3 := E(math.Sqrt(3))
 	q := sqrt3/3*p.X() - p.Y()/3
 	r := 2 * p.Y() / 3
@@ -108,7 +108,7 @@ func CartesianToHex[E utils.Float](p Vector2[E]) *HexCoordinate[E] {
 // HexToCartesian converts axial hex coordinates to a cartesian point, the
 // inverse of CartesianToHex (unit-size, pointy-top hexagons centered on the
 // origin).
-func HexToCartesian[E utils.Float](h HexCoordinate[E]) *Vector2[E] {
+func HexToCartesian[E constraints.Float](h HexCoordinate[E]) *Vector2[E] {
 	sqrt3 := E(math.Sqrt(3))
 	x := sqrt3*h.Q() + sqrt3/2*h.R()
 	y := 3 * h.R() / 2
@@ -119,7 +119,7 @@ func HexToCartesian[E utils.Float](h HexCoordinate[E]) *Vector2[E] {
 // CartesianToHex) to the nearest hex cell. It rounds each cube coordinate
 // independently, then fixes up the component with the largest rounding
 // error so that q+r+s stays 0.
-func RoundHex[E utils.Float](h HexCoordinate[E]) *HexCoordinate[E] {
+func RoundHex[E constraints.Float](h HexCoordinate[E]) *HexCoordinate[E] {
 	q, r, s := h.Q(), h.R(), h.S()
 
 	rq := E(math.Round(float64(q)))
@@ -141,7 +141,7 @@ func RoundHex[E utils.Float](h HexCoordinate[E]) *HexCoordinate[E] {
 }
 
 // absFloat returns the absolute value of x.
-func absFloat[E utils.Float](x E) E {
+func absFloat[E constraints.Float](x E) E {
 	if x < 0 {
 		return -x
 	}
