@@ -3,18 +3,20 @@
 A generic Go library of number-theory utilities for solving [Project Euler](https://projecteuler.net/) problems. All functions are generic over Go's built-in numeric types via type constraints.
 
 ```
-go get github.com/t1sk3/eulerlib/v2
+go get github.com/t1sk3/eulerlib/v3
 ```
 
-Requires **Go 1.23+**.
+Requires **Go 1.24.8+**.
+
+> **v3 is a breaking change from v2** — see [Type Constraints and Upgrading from v2](#type-constraints-and-upgrading-from-v2) and [CHANGELOG.md](CHANGELOG.md) before upgrading.
 
 eulerlib is split into small, focused packages instead of one flat package — import only what you need:
 
 ```go
 import (
-	"github.com/t1sk3/eulerlib/v2/prime_numbers"
-	"github.com/t1sk3/eulerlib/v2/num_theory"
-	"github.com/t1sk3/eulerlib/v2/vector"
+	"github.com/t1sk3/eulerlib/v3/prime_numbers"
+	"github.com/t1sk3/eulerlib/v3/num_theory"
+	"github.com/t1sk3/eulerlib/v3/vector"
 )
 
 prime_numbers.IsPrime(97)        // true
@@ -24,21 +26,21 @@ vector.NewVector([]int{1, 2, 3}) // *Vector[int]
 
 | Package | Import path | Covers |
 |---|---|---|
-| `prime_numbers` | `.../v2/prime_numbers` | Primality, prime listing/counting/generation, prime iterator |
-| `num_theory` | `.../v2/num_theory` | Divisors, GCD/LCM, factorization, powers, modular arithmetic, combinatorics |
-| `fibonacci` | `.../v2/fibonacci` | Fibonacci sequences and single terms (incl. `big.Int`), Collatz-adjacent helpers |
-| `figurate` | `.../v2/figurate` | Triangular, pentagonal, and hexagonal numbers |
-| `sequences` | `.../v2/sequences` | Collatz sequence and length |
-| `pythagoras` | `.../v2/pythagoras` | Pythagorean triplet check |
-| `vector` | `.../v2/vector` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
-| `etc` | `.../v2/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
-| `utils` | `.../v2/utils` | Generic type constraints (`Integer`, `Float`, `Number`, ...) and reflection-based type checks |
-| `progress` | `.../v2/progress` | Live progress bar (and open-ended spinner) for `range` loops over a slice or a count |
-| `stopwatch` | `.../v2/stopwatch` | Timing helper for benchmarking brute-force runs |
-| `memo` | `.../v2/memo` | Generic memoization wrappers for recursive/DP-style brute forces |
-| `plot` | `.../v2/plot` | Interactive HTML 2D/3D scatter plots (via ECharts) for visualizing data points |
+| `prime_numbers` | `.../v3/prime_numbers` | Primality, prime listing/counting/generation, prime iterator |
+| `num_theory` | `.../v3/num_theory` | Divisors, GCD/LCM, factorization, powers, modular arithmetic, combinatorics |
+| `fibonacci` | `.../v3/fibonacci` | Fibonacci sequences and single terms (incl. `big.Int`), Collatz-adjacent helpers |
+| `figurate` | `.../v3/figurate` | Triangular, pentagonal, and hexagonal numbers |
+| `sequences` | `.../v3/sequences` | Collatz sequence and length |
+| `pythagoras` | `.../v3/pythagoras` | Pythagorean triplet check |
+| `vector` | `.../v3/vector` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
+| `etc` | `.../v3/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
+| `utils` | `.../v3/utils` | Reflection-based numeric/comparable type checks (`SameType`, `IsInteger`, ...) |
+| `progress` | `.../v3/progress` | Live progress bar (and open-ended spinner) for `range` loops over a slice or a count |
+| `stopwatch` | `.../v3/stopwatch` | Timing helper for benchmarking brute-force runs |
+| `memo` | `.../v3/memo` | Generic memoization wrappers for recursive/DP-style brute forces |
+| `plot` | `.../v3/plot` | Interactive HTML 2D/3D scatter plots (via ECharts) for visualizing data points |
 
-Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/v2) comments on every exported symbol.
+Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/v3) comments on every exported symbol.
 
 ---
 
@@ -340,19 +342,37 @@ Options: `WithTitle`, `WithXLabel`, `WithYLabel`, `WithZLabel` (3D only), `WithS
 
 ---
 
-## Type Constraints — `utils`
+## Type Constraints and Upgrading from v2
+
+As of v3, eulerlib's generic functions are constrained using [go-utils](https://github.com/t1sk3/go-utils)'s `constraints` package instead of defining its own — `utils.Integer` and friends are gone from eulerlib itself:
 
 ```go
-SignedInteger   // ~int | ~int8 | ~int16 | ~int32 | ~int64
-UnsignedInteger // ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
-Integer         // SignedInteger | UnsignedInteger
-Float           // ~float32 | ~float64
-RealNumber      // Integer | Float
-Complex         // ~complex64 | ~complex128
-Number          // RealNumber | Complex
-Comparable      // Number | ~string | ~bool
-SignedNumber    // SignedInteger | Float | Complex
+constraints.Signed       // ~int | ~int8 | ~int16 | ~int32 | ~int64
+constraints.Unsigned     // ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
+constraints.Integer      // Signed | Unsigned
+constraints.Float        // ~float32 | ~float64
+constraints.Number       // Integer | Float
+constraints.Complex      // ~complex64 | ~complex128
+constraints.Numeric      // Number | Complex
+constraints.Basic        // Numeric | ~string | ~bool
+constraints.SignedNumber // Signed | Float | Complex
 ```
+
+**Upgrading from v2:** every exported function that was constrained by one of eulerlib's own types now takes the equivalent `constraints` type below. Calling the functions with concrete types (`int`, `int64`, `float64`, ...) is unaffected; only code that referenced eulerlib's constraint types directly (e.g. a custom generic function declared as `func f[E utils.Integer](...)`) needs updating.
+
+| v2 (`utils`) | v3 (`go-utils/types/constraints`) |
+|---|---|
+| `SignedInteger` | `Signed` |
+| `UnsignedInteger` | `Unsigned` |
+| `Integer` | `Integer` |
+| `Float` | `Float` |
+| `RealNumber` | `Number` |
+| `Complex` | `Complex` |
+| `Number` | `Numeric` |
+| `Comparable` | `Basic` |
+| `SignedNumber` | `SignedNumber` |
+
+Also in v3: `num_theory.ModInverse` and `num_theory.CRT` return [`optional.Optional`](https://github.com/t1sk3/go-utils) instead of a trailing `bool` — see their reference entries above. See [CHANGELOG.md](CHANGELOG.md) for the full list of changes.
 
 ---
 
@@ -362,14 +382,14 @@ SignedNumber    // SignedInteger | Float | Complex
 import (
 	"fmt"
 
-	"github.com/t1sk3/eulerlib/v2/etc"
-	"github.com/t1sk3/eulerlib/v2/fibonacci"
-	"github.com/t1sk3/eulerlib/v2/figurate"
-	"github.com/t1sk3/eulerlib/v2/num_theory"
-	"github.com/t1sk3/eulerlib/v2/prime_numbers"
-	"github.com/t1sk3/eulerlib/v2/progress"
-	"github.com/t1sk3/eulerlib/v2/sequences"
-	"github.com/t1sk3/eulerlib/v2/vector"
+	"github.com/t1sk3/eulerlib/v3/etc"
+	"github.com/t1sk3/eulerlib/v3/fibonacci"
+	"github.com/t1sk3/eulerlib/v3/figurate"
+	"github.com/t1sk3/eulerlib/v3/num_theory"
+	"github.com/t1sk3/eulerlib/v3/prime_numbers"
+	"github.com/t1sk3/eulerlib/v3/progress"
+	"github.com/t1sk3/eulerlib/v3/sequences"
+	"github.com/t1sk3/eulerlib/v3/vector"
 )
 
 // Check if 28 is a perfect number

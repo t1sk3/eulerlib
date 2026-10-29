@@ -9,7 +9,7 @@ import (
 	"math/bits"
 	"strconv"
 
-	"github.com/t1sk3/eulerlib/v2/etc"
+	"github.com/t1sk3/eulerlib/v3/etc"
 	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
 	"github.com/t1sk3/go-utils/types/optional"
