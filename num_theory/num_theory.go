@@ -10,11 +10,13 @@ import (
 	"strconv"
 
 	"github.com/t1sk3/eulerlib/v2/etc"
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
+	"github.com/t1sk3/go-utils/types/optional"
+	"github.com/t1sk3/go-utils/types/pair"
 )
 
 // CountDivisors returns the number of divisors the given integer has.
-func CountDivisors[E utils.Integer](n E) E {
+func CountDivisors[E constraints.Integer](n E) E {
 	count := E(0)
 	end := E(math.Sqrt(float64(n)))
 	for i := E(1); i <= end; i++ {
@@ -30,7 +32,7 @@ func CountDivisors[E utils.Integer](n E) E {
 }
 
 // Divisors returns all divisors of the given integer
-func Divisors[E utils.Integer](n E) []E {
+func Divisors[E constraints.Integer](n E) []E {
 	end := E(math.Sqrt(float64(n)))
 	divisors := []E{1}
 
@@ -45,7 +47,7 @@ func Divisors[E utils.Integer](n E) []E {
 }
 
 // Permutations returns a slice with all permutations of the given slice
-func Permutations[E utils.Comparable](arr []E) [][]E {
+func Permutations[E constraints.Basic](arr []E) [][]E {
 	var helper func([]E, int)
 	res := [][]E{}
 
@@ -84,7 +86,7 @@ func PermutationCount[E comparable](n []E) int {
 }
 
 // Combinations Returns all combinations of the elements in the given slice
-func Combinations[E any, F utils.Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
+func Combinations[E any, F constraints.Integer](set []E, n F) (subsets [][]E) { // https://github.com/mxschmitt/golang-combinations/blob/master/combinations.go
 	length := uint(len(set))
 
 	if n > F(len(set)) {
@@ -119,7 +121,7 @@ func Combinations[E any, F utils.Integer](set []E, n F) (subsets [][]E) { // htt
 // computed via Euler's pentagonal number recurrence in O(n*sqrt(n)), and
 // returns a *big.Int since p(n) grows quickly (p(100) already has 9
 // digits). Returns 1 for n == 0, and 0 for n < 0.
-func Partition[E utils.Integer](n E) *big.Int {
+func Partition[E constraints.Integer](n E) *big.Int {
 	if n < 0 {
 		return big.NewInt(0)
 	}
@@ -145,7 +147,7 @@ func Partition[E utils.Integer](n E) *big.Int {
 }
 
 // Factorial Calculates the factorial of the given integer
-func Factorial[E utils.Integer](n E) E {
+func Factorial[E constraints.Integer](n E) E {
 	if n == 0 {
 		return 1
 	}
@@ -166,7 +168,7 @@ func FactorialBigInt(n int64) *big.Int {
 }
 
 // FactorialDigitSum Calculates factorial digital sum
-func FactorialDigitSum[E utils.Integer](n E) E {
+func FactorialDigitSum[E constraints.Integer](n E) E {
 	s := strconv.Itoa(int(n))
 	res := E(0)
 
@@ -178,7 +180,7 @@ func FactorialDigitSum[E utils.Integer](n E) E {
 }
 
 // DigitSum returns the sum of the decimal digits of n.
-func DigitSum[E utils.Integer](n E) (res E) {
+func DigitSum[E constraints.Integer](n E) (res E) {
 
 	for n > 0 {
 		res += n % 10
@@ -189,7 +191,7 @@ func DigitSum[E utils.Integer](n E) (res E) {
 }
 
 // DigitCount returns the number of decimal digits in n. Returns 1 for n <= 0.
-func DigitCount[E utils.Integer](n E) (count E) {
+func DigitCount[E constraints.Integer](n E) (count E) {
 	if n <= 0 {
 		return 1
 	}
@@ -213,7 +215,7 @@ func DigitSumString(s string) int64 {
 }
 
 // Gcd calculates the greatest common divisor for the given integers. Panics if no args given.
-func Gcd[E utils.Integer](args ...E) E {
+func Gcd[E constraints.Integer](args ...E) E {
 	if len(args) == 0 {
 		panic("Gcd: at least one argument required")
 	}
@@ -225,7 +227,7 @@ func Gcd[E utils.Integer](args ...E) E {
 }
 
 // gcd computes the greatest common divisor of a and b using the Euclidean algorithm.
-func gcd[E utils.Integer](a, b E) E {
+func gcd[E constraints.Integer](a, b E) E {
 	for b != 0 {
 		a, b = b, a%b
 	}
@@ -233,14 +235,14 @@ func gcd[E utils.Integer](a, b E) E {
 }
 
 // IsCoprime returns true if a and b share no common factor other than 1.
-func IsCoprime[E utils.Integer](a, b E) bool {
+func IsCoprime[E constraints.Integer](a, b E) bool {
 	return Gcd(a, b) == 1
 }
 
 // ExtGcd returns g = gcd(a, b) along with x and y such that a*x + b*y = g
 // (Bézout's identity), via the extended Euclidean algorithm. g is always
 // non-negative.
-func ExtGcd[E utils.SignedInteger](a, b E) (g, x, y E) {
+func ExtGcd[E constraints.Signed](a, b E) (g, x, y E) {
 	if b == 0 {
 		if a < 0 {
 			return -a, -1, 0
@@ -252,38 +254,38 @@ func ExtGcd[E utils.SignedInteger](a, b E) (g, x, y E) {
 }
 
 // ModInverse returns the modular multiplicative inverse of a mod m — the
-// value x in [0, m) such that a*x ≡ 1 (mod m) — and true. It returns
-// (0, false) if a and m are not coprime, in which case no inverse exists.
-func ModInverse[E utils.SignedInteger](a, m E) (E, bool) {
+// value x in [0, m) such that a*x ≡ 1 (mod m). It returns an empty Optional
+// if a and m are not coprime, in which case no inverse exists.
+func ModInverse[E constraints.Signed](a, m E) optional.Optional[E] {
 	if m == 0 {
-		return 0, false
+		return optional.Empty[E]()
 	}
 	if m < 0 {
 		m = -m
 	}
 	g, x, _ := ExtGcd(a, m)
 	if g != 1 {
-		return 0, false
+		return optional.Empty[E]()
 	}
 	x %= m
 	if x < 0 {
 		x += m
 	}
-	return x, true
+	return optional.Of(x)
 }
 
 // CRT solves the system of congruences x ≡ remainders[i] (mod moduli[i])
 // for every i, by repeatedly combining congruences pairwise (the moduli
 // need not be pairwise coprime). It returns the unique solution x modulo
-// the combined modulus M = lcm(moduli), M itself, and true — or
-// (0, 0, false) if the system has no solution, or if remainders and moduli
-// have different lengths or are empty.
-func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
+// the combined modulus M = lcm(moduli), paired with M itself — or an empty
+// Optional if the system has no solution, or if remainders and moduli have
+// different lengths or are empty.
+func CRT[E constraints.Signed](remainders, moduli []E) optional.Optional[pair.Pair[E, E]] {
 	if len(remainders) == 0 || len(remainders) != len(moduli) {
-		return 0, 0, false
+		return optional.Empty[pair.Pair[E, E]]()
 	}
 	if moduli[0] == 0 {
-		return 0, 0, false
+		return optional.Empty[pair.Pair[E, E]]()
 	}
 
 	x, m := remainders[0], moduli[0]
@@ -298,7 +300,7 @@ func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
 	for i := 1; i < len(remainders); i++ {
 		r, n := remainders[i], moduli[i]
 		if n == 0 {
-			return 0, 0, false
+			return optional.Empty[pair.Pair[E, E]]()
 		}
 		if n < 0 {
 			n = -n
@@ -309,7 +311,7 @@ func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
 		}
 		g, p, _ := ExtGcd(m, n)
 		if (r-x)%g != 0 {
-			return 0, 0, false
+			return optional.Empty[pair.Pair[E, E]]()
 		}
 		lcm := m / g * n
 		diff := (r - x) / g
@@ -320,12 +322,12 @@ func CRT[E utils.SignedInteger](remainders, moduli []E) (E, E, bool) {
 		}
 		m = lcm
 	}
-	return x, m, true
+	return optional.Of(pair.Of(x, m))
 }
 
 // Factorize returns the prime factorization of n as a map of prime → exponent.
 // Returns an empty map for n <= 1.
-func Factorize[E utils.Integer](n E) map[E]E {
+func Factorize[E constraints.Integer](n E) map[E]E {
 	factors := make(map[E]E)
 	for i := E(2); i <= n; i++ {
 		for n%i == 0 {
@@ -342,7 +344,7 @@ func Factorize[E utils.Integer](n E) map[E]E {
 // O(log n), versus Factorize's O(n) trial division — build the table once
 // and reuse it across many calls, e.g. when brute-forcing over a whole
 // range of numbers.
-func FactorizeSPF[E utils.Integer](n E, spf []E) map[E]E {
+func FactorizeSPF[E constraints.Integer](n E, spf []E) map[E]E {
 	factors := make(map[E]E)
 	if n <= 1 {
 		return factors
@@ -390,7 +392,7 @@ func FactorizeBigInt(n *big.Int) [][2]*big.Int {
 }
 
 // Calculates all primefactors of the given number
-func PrimeFactors[E utils.Integer](n E) []E {
+func PrimeFactors[E constraints.Integer](n E) []E {
 	primefs := []E{}
 	for n%2 == 0 {
 		primefs = append(primefs, 2)
@@ -412,7 +414,7 @@ func PrimeFactors[E utils.Integer](n E) []E {
 }
 
 // PowMod returns x^y % p. Requires p < 2^31 to avoid int64 overflow during squaring.
-func PowMod[E utils.Integer](x, y, p E) int64 {
+func PowMod[E constraints.Integer](x, y, p E) int64 {
 	res := int64(1)
 	xm := int64(x) % int64(p)
 	for y > 0 {
@@ -431,7 +433,7 @@ func ToRadians(n float64) float64 {
 }
 
 // Binomial Returns `n!/(k!(n-k)!)`
-func Binomial[E utils.Integer](n E, k E) *big.Int {
+func Binomial[E constraints.Integer](n E, k E) *big.Int {
 	prod := big.NewInt(1)
 	for i := E(0); i < k; i++ {
 		prod.Mul(prod, big.NewInt(int64(n-i)))
@@ -475,7 +477,7 @@ func PrimeFactorsBigInt(n *big.Int) (primefs [][]int64) {
 }
 
 // Pow calculates b^n using integers. Panics for negative n.
-func Pow[E utils.Integer](b E, n E) E {
+func Pow[E constraints.Integer](b E, n E) E {
 	if n < 0 {
 		panic("Pow: negative exponent")
 	}
@@ -521,12 +523,12 @@ func PowBigFloat(b *big.Float, n int64) *big.Float {
 }
 
 // Checks whether the given number is a power of 2
-func IsPowerOfTwo[E utils.Integer](n E) bool {
+func IsPowerOfTwo[E constraints.Integer](n E) bool {
 	return n > 0 && n&(n-1) == 0
 }
 
 // Checks whether or not the given number is a perfect square
-func IsSquare[E utils.Integer](n E) bool {
+func IsSquare[E constraints.Integer](n E) bool {
 	if n < 0 {
 		return false
 	}
@@ -555,12 +557,12 @@ func IsSquare[E utils.Integer](n E) bool {
 }
 
 // FloatIsInteger returns true if n has no fractional part.
-func FloatIsInteger[E utils.Float](n E) bool {
+func FloatIsInteger[E constraints.Float](n E) bool {
 	return E(math.Floor(float64(n))) == n
 }
 
 // Lcm returns the least common multiple of the given integers.
-func Lcm[E utils.Integer](nums ...E) E {
+func Lcm[E constraints.Integer](nums ...E) E {
 	res := E(1)
 	for _, v := range nums {
 		res = res * v / Gcd(res, v)
@@ -571,7 +573,7 @@ func Lcm[E utils.Integer](nums ...E) E {
 // Lcd is deprecated. Use Lcm instead.
 //
 // Deprecated: Use Lcm.
-func Lcd[E utils.Integer](nums ...E) E {
+func Lcd[E constraints.Integer](nums ...E) E {
 	return Lcm(nums...)
 }
 
@@ -600,12 +602,12 @@ func ReduceWithInit[E any](initial E, nums []E, f func(E, E) E) E {
 // MaxInSlice returns the maximum value in the given slice.
 //
 // Deprecated: Use Max instead.
-func MaxInSlice[E utils.Integer](nums []E) E {
+func MaxInSlice[E constraints.Integer](nums []E) E {
 	return etc.Max(nums...)
 }
 
 // SumDivisors returns the sum of proper divisors of n (all divisors excluding n itself).
-func SumDivisors[E utils.Integer](n E) E {
+func SumDivisors[E constraints.Integer](n E) E {
 	if n <= 1 {
 		return 0
 	}
@@ -623,22 +625,22 @@ func SumDivisors[E utils.Integer](n E) E {
 }
 
 // IsAbundant returns true if the sum of proper divisors of n exceeds n.
-func IsAbundant[E utils.Integer](n E) bool {
+func IsAbundant[E constraints.Integer](n E) bool {
 	return SumDivisors(n) > n
 }
 
 // IsDeficient returns true if the sum of proper divisors of n is less than n.
-func IsDeficient[E utils.Integer](n E) bool {
+func IsDeficient[E constraints.Integer](n E) bool {
 	return SumDivisors(n) < n
 }
 
 // IsPerfect returns true if the sum of proper divisors of n equals n.
-func IsPerfect[E utils.Integer](n E) bool {
+func IsPerfect[E constraints.Integer](n E) bool {
 	return SumDivisors(n) == n
 }
 
 // IsAmicable returns true if SumDivisors(SumDivisors(a)) == a and SumDivisors(a) != a.
-func IsAmicable[E utils.Integer](a E) bool {
+func IsAmicable[E constraints.Integer](a E) bool {
 	b := SumDivisors(a)
 	return b != a && SumDivisors(b) == a
 }

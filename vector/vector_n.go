@@ -4,16 +4,16 @@
 // and Perp.
 package vector
 
-import "github.com/t1sk3/eulerlib/v2/utils"
+import "github.com/t1sk3/go-utils/types/constraints"
 
 // Vector is an N-dimensional vector backed by a slice of elements.
-type Vector[E utils.Number] struct {
+type Vector[E constraints.Numeric] struct {
 	elements []E
 }
 
 // NewVector creates a vector from a slice of elements. The slice is copied,
 // so later changes to elements do not affect the returned Vector.
-func NewVector[E utils.Number](elements []E) *Vector[E] {
+func NewVector[E constraints.Numeric](elements []E) *Vector[E] {
 	e := make([]E, len(elements))
 	copy(e, elements)
 	return &Vector[E]{elements: e}

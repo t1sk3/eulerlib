@@ -10,13 +10,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // Point2D is a single labeled data point to plot in two dimensions. Label
 // is optional — leave it empty to plot a bare point (it still shows its
 // coordinates in the hover tooltip).
-type Point2D[E utils.RealNumber] struct {
+type Point2D[E constraints.Number] struct {
 	X, Y  E
 	Label string
 }
@@ -24,7 +24,7 @@ type Point2D[E utils.RealNumber] struct {
 // Point3D is a single labeled data point to plot in three dimensions.
 // Label is optional — leave it empty to plot a bare point (it still shows
 // its coordinates in the hover tooltip).
-type Point3D[E utils.RealNumber] struct {
+type Point3D[E constraints.Number] struct {
 	X, Y, Z E
 	Label   string
 }

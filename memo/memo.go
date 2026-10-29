@@ -3,6 +3,8 @@
 // Euler (and slow to a crawl without a cache).
 package memo
 
+import "github.com/t1sk3/go-utils/types/pair"
+
 // Memoize wraps fn so repeated calls with the same argument are computed
 // only once. It is not safe for concurrent use from multiple goroutines.
 //
@@ -28,12 +30,6 @@ func Memoize[K comparable, V any](fn func(K) V) func(K) V {
 	}
 }
 
-// key2 combines two comparable values into a single comparable map key.
-type key2[K1, K2 comparable] struct {
-	a K1
-	b K2
-}
-
 // Memoize2 is Memoize for a two-argument function, useful for the
 // (position, state) style recurrences common in digit-DP and counting
 // problems:
@@ -44,9 +40,9 @@ type key2[K1, K2 comparable] struct {
 //	    return ways(pos+1, remaining-k)
 //	})
 func Memoize2[K1, K2 comparable, V any](fn func(K1, K2) V) func(K1, K2) V {
-	cache := make(map[key2[K1, K2]]V)
+	cache := make(map[pair.Pair[K1, K2]]V)
 	return func(a K1, b K2) V {
-		k := key2[K1, K2]{a, b}
+		k := pair.Of(a, b)
 		if v, ok := cache[k]; ok {
 			return v
 		}

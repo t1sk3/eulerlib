@@ -6,7 +6,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/charts"
 	eopts "github.com/go-echarts/go-echarts/v2/opts"
 
-	"github.com/t1sk3/eulerlib/v2/utils"
+	"github.com/t1sk3/go-utils/types/constraints"
 )
 
 // Scatter3D renders points as an interactive HTML 3D scatter plot — built
@@ -26,7 +26,7 @@ import (
 //	    {X: 0, Y: 0, Z: 1, Label: "C"},
 //	}
 //	html, err := plot.Scatter3D(pts, "points.html", plot.WithTitle("unit points"))
-func Scatter3D[E utils.RealNumber](points []Point3D[E], path string, opts ...Option) (string, error) {
+func Scatter3D[E constraints.Number](points []Point3D[E], path string, opts ...Option) (string, error) {
 	cfg := newConfig(opts...)
 
 	data := make([]eopts.Chart3DData, len(points))

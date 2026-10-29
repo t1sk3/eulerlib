@@ -447,7 +447,7 @@ func TestModInverse(t *testing.T) {
 		{3, -11, 4, true},  // negative modulus is normalized
 	}
 	for _, tc := range cases {
-		got, ok := ModInverse(tc.a, tc.m)
+		got, ok := ModInverse(tc.a, tc.m).Value()
 		if ok != tc.ok {
 			t.Errorf("ModInverse(%d, %d) ok = %t, want %t", tc.a, tc.m, ok, tc.ok)
 			continue
@@ -463,7 +463,8 @@ func TestModInverse(t *testing.T) {
 
 func TestCRT(t *testing.T) {
 	// x ≡ 2 (mod 3), x ≡ 3 (mod 5), x ≡ 2 (mod 7) -> x = 23 (mod 105)
-	x, m, ok := CRT([]int64{2, 3, 2}, []int64{3, 5, 7})
+	res, ok := CRT([]int64{2, 3, 2}, []int64{3, 5, 7}).Value()
+	x, m := res.Unpack()
 	if !ok {
 		t.Fatal("CRT([2,3,2], [3,5,7]) ok = false, want true")
 	}
@@ -475,26 +476,27 @@ func TestCRT(t *testing.T) {
 	}
 
 	// Non-coprime, consistent moduli: x ≡ 5 (mod 6), x ≡ 3 (mod 4) -> x = 11 (mod 12)
-	x, m, ok = CRT([]int64{5, 3}, []int64{6, 4})
+	res, ok = CRT([]int64{5, 3}, []int64{6, 4}).Value()
+	x, m = res.Unpack()
 	if !ok || m != 12 || x != 11 {
 		t.Errorf("CRT([5,3], [6,4]) = (%d, %d, %t), want (11, 12, true)", x, m, ok)
 	}
 
 	// Contradictory system: no solution.
-	if _, _, ok := CRT([]int64{1, 2}, []int64{4, 4}); ok {
+	if _, ok := CRT([]int64{1, 2}, []int64{4, 4}).Value(); ok {
 		t.Error("CRT([1,2], [4,4]) ok = true, want false (contradictory system)")
 	}
 
 	// Mismatched lengths.
-	if _, _, ok := CRT([]int64{1, 2}, []int64{4}); ok {
+	if _, ok := CRT([]int64{1, 2}, []int64{4}).Value(); ok {
 		t.Error("CRT with mismatched lengths ok = true, want false")
 	}
 
 	// Zero modulus is invalid.
-	if _, _, ok := CRT([]int64{1}, []int64{0}); ok {
+	if _, ok := CRT([]int64{1}, []int64{0}).Value(); ok {
 		t.Error("CRT with zero modulus ok = true, want false")
 	}
-	if _, _, ok := CRT([]int64{1, 2}, []int64{3, 0}); ok {
+	if _, ok := CRT([]int64{1, 2}, []int64{3, 0}).Value(); ok {
 		t.Error("CRT with zero modulus in later equation ok = true, want false")
 	}
 }

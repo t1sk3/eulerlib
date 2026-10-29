@@ -1,21 +1,21 @@
 package vector
 
-import "github.com/t1sk3/eulerlib/v2/utils"
+import "github.com/t1sk3/go-utils/types/constraints"
 
 // Vector2 is a 2-dimensional vector. It embeds Vector to inherit the
 // element-wise arithmetic operations, and adds named X/Y accessors and
 // 2D-specific operations such as Cross and Perp.
-type Vector2[E utils.SignedNumber] struct {
+type Vector2[E constraints.SignedNumber] struct {
 	Vector[E]
 }
 
 // NewVector2 creates a 2D vector from its x and y components.
-func NewVector2[E utils.SignedNumber](x, y E) *Vector2[E] {
+func NewVector2[E constraints.SignedNumber](x, y E) *Vector2[E] {
 	return &Vector2[E]{Vector[E]{elements: []E{x, y}}}
 }
 
 // AsVector2 adopts an existing Vector (no copy — they share backing storage).
-func AsVector2[E utils.SignedNumber](v *Vector[E]) *Vector2[E] {
+func AsVector2[E constraints.SignedNumber](v *Vector[E]) *Vector2[E] {
 	if v.Len() != 2 {
 		panic("vector is not of length 2")
 	}
