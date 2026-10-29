@@ -1,4 +1,4 @@
-module github.com/t1sk3/eulerlib/v2
+module github.com/t1sk3/eulerlib/v3
 
 go 1.24.8
 
