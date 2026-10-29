@@ -14,6 +14,8 @@ import (
 
 	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
+	"github.com/t1sk3/go-utils/types/optional"
+	"github.com/t1sk3/go-utils/types/pair"
 	"github.com/t1sk3/go-utils/types/set"
 )
 
@@ -332,6 +334,22 @@ func Range[E constraints.Number](start, stop E) (res []E) {
 	return
 }
 
+// FirstMatching returns the first value in start, start+step, start+2*step,
+// ... that satisfies predicate, or an empty Optional if predicate never
+// returns true. This is the "find the smallest/first n such that..." search
+// that comes up constantly when brute-forcing a problem: it replaces a
+// hand-rolled loop with a sentinel/bool pair with a single expression, and
+// never runs forever on its own — pair it with a bound inside predicate (or
+// just check IsPresent) if the search might not terminate.
+//
+//	// first triangular number with over 500 divisors
+//	n, _ := etc.FirstMatching(1, 1, func(n int) bool {
+//	    return num_theory.CountDivisors(figurate.NthTriangular(n)) > 500
+//	}).Value()
+func FirstMatching[E constraints.Number](start, step E, predicate func(E) bool) optional.Optional[E] {
+	return stream.Iterate(start, func(n E) E { return n + step }).Filter(predicate).FindFirst()
+}
+
 // Returns a slice of integers from start to stop with the given step
 func RangeStep[E constraints.Number](start, stop, step E) (res []E) {
 	if step == 0 {
@@ -418,6 +436,15 @@ func UniqueCount[E comparable](s []E) map[E]int {
 		keys[entry]++
 	}
 	return keys
+}
+
+// MostFrequent returns the most common element of s and its count, or an
+// empty Optional if s is empty. If several elements are tied for the
+// highest count, the one that occurs first in s is returned.
+func MostFrequent[E comparable](s []E) optional.Optional[pair.Pair[E, int]] {
+	counts := UniqueCount(s)
+	withCounts := stream.Map(stream.FromSlice(s), func(e E) pair.Pair[E, int] { return pair.Of(e, counts[e]) })
+	return withCounts.Max(func(a, b pair.Pair[E, int]) int { return a.Second - b.Second })
 }
 
 // creates a file with the given name

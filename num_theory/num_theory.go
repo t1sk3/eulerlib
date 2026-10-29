@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/t1sk3/eulerlib/v2/etc"
+	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
 	"github.com/t1sk3/go-utils/types/optional"
 	"github.com/t1sk3/go-utils/types/pair"
@@ -643,4 +644,17 @@ func IsPerfect[E constraints.Integer](n E) bool {
 func IsAmicable[E constraints.Integer](a E) bool {
 	b := SumDivisors(a)
 	return b != a && SumDivisors(b) == a
+}
+
+// AmicablePairsBelow returns every amicable pair (a, b) with a < b < limit
+// (Project Euler #21), each pair reported exactly once with its smaller
+// member first. A number n is the smaller of its pair exactly when
+// SumDivisors(n) > n, which is what lets this report each pair once without
+// tracking which numbers have already been seen.
+func AmicablePairsBelow[E constraints.Integer](limit E) []pair.Pair[E, E] {
+	isSmallerOfPair := func(n E) bool {
+		return IsAmicable(n) && SumDivisors(n) > n
+	}
+	smaller := stream.Range(E(1), limit).Filter(isSmallerOfPair)
+	return stream.Map(smaller, func(n E) pair.Pair[E, E] { return pair.Of(n, SumDivisors(n)) }).ToSlice()
 }
