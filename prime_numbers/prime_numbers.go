@@ -197,3 +197,18 @@ func FirstNPrimes[E constraints.Integer](n E) []E {
 	p := NewPrimeNumberIterator[E]()
 	return stream.Generate(p.Next).Limit(int(n)).ToSlice()
 }
+
+// Primes returns an infinite, lazily-computed Stream of every prime in
+// ascending order. Unlike ListPrimes, which needs an upper bound up front,
+// a Primes stream can be composed with Limit, TakeWhile, Filter, and the
+// other Stream operations without knowing how many primes you'll need:
+//
+//	sum := stream.Sum(prime_numbers.Primes[int]().TakeWhile(func(p int) bool { return p < 2000000 }))
+//	first5Palindromic := prime_numbers.Primes[int]().Filter(isPalindrome).Limit(5).ToSlice()
+//
+// Bound it with Limit or TakeWhile before calling a terminal operation that
+// consumes every element, or it will run forever.
+func Primes[E constraints.Integer]() stream.Stream[E] {
+	p := NewPrimeNumberIterator[E]()
+	return stream.Generate(p.Next)
+}

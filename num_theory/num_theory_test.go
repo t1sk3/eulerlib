@@ -315,6 +315,34 @@ func TestIsAmicable(t *testing.T) {
 	}
 }
 
+func TestAmicablePairsBelow(t *testing.T) {
+	// The five amicable pairs below 10000, and the Project Euler #21
+	// answer (sum of all amicable numbers below 10000) they add up to.
+	want := []struct{ a, b int64 }{
+		{220, 284}, {1184, 1210}, {2620, 2924}, {5020, 5564}, {6232, 6368},
+	}
+	got := AmicablePairsBelow(int64(10000))
+	if len(got) != len(want) {
+		t.Fatalf("len(AmicablePairsBelow(10000)) = %d, want %d", len(got), len(want))
+	}
+
+	sum := int64(0)
+	for i, tc := range want {
+		a, b := got[i].Unpack()
+		if a != tc.a || b != tc.b {
+			t.Errorf("AmicablePairsBelow(10000)[%d] = (%d, %d), want (%d, %d)", i, a, b, tc.a, tc.b)
+		}
+		sum += a + b
+	}
+	if sum != 31626 {
+		t.Errorf("sum of AmicablePairsBelow(10000) = %d, want 31626", sum)
+	}
+
+	if got := AmicablePairsBelow(int64(220)); len(got) != 0 {
+		t.Errorf("AmicablePairsBelow(220) = %v, want empty (220's pair starts at 284)", got)
+	}
+}
+
 func TestPowBigInt(t *testing.T) {
 	cases := []struct {
 		b, n int64

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/fxtlabs/primes"
+	"github.com/t1sk3/go-utils/stream"
 )
 
 func TestPrimeNumbers(t *testing.T) {
@@ -191,5 +192,35 @@ func TestListSmallestPrimeFactors(t *testing.T) {
 				t.Fatalf("spf[%d] = %d, but %d is a smaller factor", i, p, q)
 			}
 		}
+	}
+}
+
+func TestPrimes(t *testing.T) {
+	want := ListPrimes(int64(1000))
+	got := Primes[int64]().TakeWhile(func(p int64) bool { return p <= 1000 }).ToSlice()
+
+	if len(got) != len(want) {
+		t.Fatalf("len(Primes().TakeWhile(<=1000)) = %d, want %d", len(got), len(want))
+	}
+	for i := range got {
+		if got[i] != want[i] {
+			t.Errorf("Primes()[%d] = %d, want %d", i, got[i], want[i])
+		}
+	}
+
+	// Primes() must agree with FirstNPrimes for a Limit of the same size.
+	limited := Primes[int64]().Limit(50).ToSlice()
+	firstN := FirstNPrimes(int64(50))
+	if len(limited) != len(firstN) {
+		t.Fatalf("len(Primes().Limit(50)) = %d, want %d", len(limited), len(firstN))
+	}
+	for i := range limited {
+		if limited[i] != firstN[i] {
+			t.Errorf("Primes().Limit(50)[%d] = %d, want %d", i, limited[i], firstN[i])
+		}
+	}
+
+	if sum := stream.Sum(Primes[int64]().TakeWhile(func(p int64) bool { return p < 10 })); sum != 2+3+5+7 {
+		t.Errorf("sum of Primes() < 10 = %d, want %d", sum, 2+3+5+7)
 	}
 }

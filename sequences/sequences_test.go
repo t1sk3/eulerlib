@@ -43,3 +43,22 @@ func TestCollatzLength(t *testing.T) {
 		}
 	}
 }
+
+func TestLongestCollatz(t *testing.T) {
+	if got := LongestCollatz(int64(1)); got.First != 0 || got.Second != 0 {
+		t.Errorf("LongestCollatz(1) = %v, want the zero Pair", got)
+	}
+
+	const limit = int64(10000)
+	wantN, wantLen := int64(0), 0
+	for n := int64(1); n < limit; n++ {
+		if l := CollatzLength(n); l > wantLen {
+			wantN, wantLen = n, l
+		}
+	}
+
+	got := LongestCollatz(limit)
+	if got.First != wantN || got.Second != wantLen {
+		t.Errorf("LongestCollatz(%d) = (%d, %d), want (%d, %d)", limit, got.First, got.Second, wantN, wantLen)
+	}
+}

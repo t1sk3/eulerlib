@@ -54,6 +54,7 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `ListPrimality(n)` | Sieve of Eratosthenes — returns `[]bool` indexed by number |
 | `ListSmallestPrimeFactors(n)` | Sieve — returns `[]E` of each number's smallest prime factor, for O(log n) factorization via `num_theory.FactorizeSPF` |
 | `FirstNPrimes(n)` | Returns the first n primes |
+| `Primes[E]()` | Infinite, lazy `stream.Stream[E]` of every prime — compose with `.Limit(n)`, `.TakeWhile(pred)`, `.Filter(pred)`, etc. without an upper bound up front |
 | `PrimeCount(s, e)` | Counts primes in the range [s, e] |
 | `SumPrimes(s, e)` | Sums all primes in the range [s, e] |
 | `PrimeGenerator(limit)` | Channel-based prime generator up to limit |
@@ -70,6 +71,7 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `IsDeficient(n)` | True if `SumDivisors(n) < n` |
 | `IsPerfect(n)` | True if `SumDivisors(n) == n` (e.g. 6, 28, 496) |
 | `IsAmicable(n)` | True if n and `SumDivisors(n)` form an amicable pair |
+| `AmicablePairsBelow(limit)` | All amicable pairs `(a, b)` with `a < b < limit`, as `[]pair.Pair[E, E]`, each reported once |
 | `Factorize(n)` | Prime factorization as `map[E]E{prime: exponent}` |
 | `FactorizeSPF(n, spf)` | Prime factorization using a smallest-prime-factor table from `prime_numbers.ListSmallestPrimeFactors` — O(log n) instead of `Factorize`'s O(n) |
 | `FactorizeBigInt(n)` | Prime factorization of `*big.Int` as `[][2]*big.Int` |
@@ -79,8 +81,8 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `Lcm(a, b, ...)` | Least common multiple |
 | `IsCoprime(a, b)` | True if `Gcd(a, b) == 1` |
 | `ExtGcd(a, b)` | Extended Euclidean algorithm — returns `(g, x, y)` with `a*x + b*y = g` |
-| `ModInverse(a, m)` | Modular multiplicative inverse of a mod m, and whether it exists |
-| `CRT(remainders, moduli)` | Chinese Remainder Theorem — solves `x ≡ remainders[i] (mod moduli[i])` for all i (moduli needn't be coprime) |
+| `ModInverse(a, m)` | Modular multiplicative inverse of a mod m, as `optional.Optional[E]` (empty if a and m are not coprime) |
+| `CRT(remainders, moduli)` | Chinese Remainder Theorem — solves `x ≡ remainders[i] (mod moduli[i])` for all i (moduli needn't be coprime); returns `optional.Optional[pair.Pair[E, E]]` of (x, M), empty if there's no solution |
 
 ### Powers & Modular Arithmetic — `num_theory`
 
@@ -144,6 +146,7 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `FibonacciSingleBig(n)` | nth Fibonacci number as `*big.Int` (exact, iterative) |
 | `Collatz(n)` | Full Collatz sequence from n to 1 *(in `sequences`)* |
 | `CollatzLength(n)` | Number of steps in the Collatz sequence *(in `sequences`)* |
+| `LongestCollatz(limit)` | Starting number in `[1, limit)` with the longest Collatz chain, paired with its length, as `pair.Pair[E, int]` *(in `sequences`)* |
 
 ### Geometry — `pythagoras`
 
@@ -226,6 +229,8 @@ Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/
 | `UniqueCount(slice)` | Map of element → count |
 | `RemoveDuplicates(slice)` | Remove duplicates (works on `Comparable` constraint) |
 | `RemoveDuplicatesFunc(slice, fn)` | Remove duplicates with custom equality function |
+| `MostFrequent(slice)` | Most common element and its count, as `optional.Optional[pair.Pair[E, int]]` (empty for an empty slice) |
+| `FirstMatching(start, step, pred)` | First value in `start, start+step, start+2*step, ...` satisfying `pred`, as `optional.Optional[E]` — the "find the smallest n such that..." search, without a hand-rolled loop |
 | `SliceContains(slice, v)` | True if slice contains v |
 | `SliceContainsAny(slice, v, fn)` | True if any element matches v via fn |
 | `CountOccurrenceInSlice(slice, v)` | Count occurrences of v |

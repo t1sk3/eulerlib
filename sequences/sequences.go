@@ -3,7 +3,9 @@
 package sequences
 
 import (
+	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
+	"github.com/t1sk3/go-utils/types/pair"
 )
 
 // Collatz returns the full Collatz sequence starting from n until it reaches 1.
@@ -40,4 +42,15 @@ func CollatzLength[E constraints.Signed](n E) int {
 		length++
 	}
 	return length
+}
+
+// LongestCollatz returns the starting number in [1, limit) that produces the
+// longest Collatz chain, paired with that chain's length (Project Euler
+// #14). If several starting numbers are tied for the longest chain, the
+// smallest is returned. Returns the zero Pair for limit <= 1.
+func LongestCollatz[E constraints.Signed](limit E) pair.Pair[E, int] {
+	withLength := stream.Map(stream.Range(E(1), limit), func(n E) pair.Pair[E, int] {
+		return pair.Of(n, CollatzLength(n))
+	})
+	return withLength.Max(func(a, b pair.Pair[E, int]) int { return a.Second - b.Second }).Get()
 }

@@ -140,3 +140,34 @@ func TestRemoveDuplicatesFunc(t *testing.T) {
 		}
 	}
 }
+
+func TestFirstMatching(t *testing.T) {
+	// smallest n >= 1 whose square exceeds 100
+	got, ok := FirstMatching(1, 1, func(n int) bool { return n*n > 100 }).Value()
+	if !ok || got != 11 {
+		t.Errorf("FirstMatching(n*n>100) = (%d, %t), want (11, true)", got, ok)
+	}
+
+	// stepping by 2 from an even start only visits even numbers
+	got, ok = FirstMatching(0, 2, func(n int) bool { return n > 7 }).Value()
+	if !ok || got != 8 {
+		t.Errorf("FirstMatching(step=2, n>7) = (%d, %t), want (8, true)", got, ok)
+	}
+}
+
+func TestMostFrequent(t *testing.T) {
+	gotStr, ok := MostFrequent([]string{"a", "b", "a", "c", "a", "b"}).Value()
+	if !ok || gotStr.First != "a" || gotStr.Second != 3 {
+		t.Errorf("MostFrequent = (%v, %t), want ((a, 3), true)", gotStr, ok)
+	}
+
+	// ties go to whichever element occurs first in the slice
+	gotInt, ok := MostFrequent([]int{5, 7, 5, 7}).Value()
+	if !ok || gotInt.First != 5 || gotInt.Second != 2 {
+		t.Errorf("MostFrequent tie = (%v, %t), want ((5, 2), true)", gotInt, ok)
+	}
+
+	if _, ok := MostFrequent([]int{}).Value(); ok {
+		t.Error("MostFrequent([]) ok = true, want false")
+	}
+}
