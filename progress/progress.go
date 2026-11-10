@@ -85,7 +85,7 @@ func ProgressBarN(n int, opts ...Option) iter.Seq[int] {
 	bar := newBar(n, opts...)
 	return func(yield func(int) bool) {
 		defer bar.Finish()
-		for i := 0; i < n; i++ {
+		for i := range n {
 			bar.Add(1)
 			if !yield(i) {
 				return

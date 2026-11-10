@@ -6,7 +6,7 @@ A generic Go library of number-theory utilities for solving [Project Euler](http
 go get github.com/t1sk3/eulerlib/v3
 ```
 
-Requires **Go 1.24.8+**.
+Requires **Go 1.27+**.
 
 > **v3 is a breaking change from v2** — see [Type Constraints and Upgrading from v2](#type-constraints-and-upgrading-from-v2) and [CHANGELOG.md](CHANGELOG.md) before upgrading.
 

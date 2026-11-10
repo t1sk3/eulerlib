@@ -33,7 +33,7 @@ func Scatter3D[E constraints.Number](points []Point3D[E], path string, opts ...O
 	for i, p := range points {
 		item := eopts.Chart3DData{
 			Name:  p.Label,
-			Value: []interface{}{float64(p.X), float64(p.Y), float64(p.Z)},
+			Value: []any{float64(p.X), float64(p.Y), float64(p.Z)},
 		}
 		if p.Label != "" {
 			item.Label = &eopts.Label{Show: eopts.Bool(true), Formatter: "{b}", Position: "top"}

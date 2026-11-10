@@ -64,7 +64,7 @@ func TestTypePredicates(t *testing.T) {
 	if !IsNumber(complexType) || !IsNumber(intType) || IsNumber(stringType) {
 		t.Fatal("IsNumber classification mismatch")
 	}
-	if !IsComparable(stringType) || !IsComparable(boolType) || IsComparable(reflect.TypeOf([]int{})) {
+	if !IsComparable(stringType) || !IsComparable(boolType) || IsComparable(reflect.TypeFor[[]int]()) {
 		t.Fatal("IsComparable classification mismatch")
 	}
 }

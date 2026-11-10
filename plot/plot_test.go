@@ -153,3 +153,27 @@ func TestScatter3DCustomOptions(t *testing.T) {
 		}
 	}
 }
+
+// Go 1.27's encoding/json is backed by the v2 implementation. Non-ASCII
+// labels must survive rendering unchanged, and invalid UTF-8 must not make
+// rendering fail (it is replaced with U+FFFD).
+func TestScatterUnicodeLabels(t *testing.T) {
+	html, err := Scatter2D([]Point2D[int]{{X: 1, Y: 1, Label: "φ(n)"}, {X: 2, Y: 2, Label: "bad\xffx"}}, "", WithTitle("Σ φ"))
+	if err != nil {
+		t.Fatalf("Scatter2D returned error: %v", err)
+	}
+	for _, want := range []string{`"φ(n)"`, `"bad` + "�" + `x"`, "Σ φ"} {
+		if !strings.Contains(html, want) {
+			t.Errorf("expected %q in output", want)
+		}
+	}
+	html, err = Scatter3D([]Point3D[int]{{X: 1, Y: 1, Z: 1, Label: "φ(n)"}, {X: 2, Y: 2, Z: 2, Label: "bad\xffx"}}, "")
+	if err != nil {
+		t.Fatalf("Scatter3D returned error: %v", err)
+	}
+	for _, want := range []string{`"φ(n)"`, `"bad` + "�" + `x"`} {
+		if !strings.Contains(html, want) {
+			t.Errorf("expected %q in output", want)
+		}
+	}
+}

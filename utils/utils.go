@@ -13,7 +13,7 @@ type comparableToken struct{}
 
 // SameType returns whether A and B are of the same type or type family token.
 func SameType[A, B any]() bool {
-	ta, tb := reflect.TypeOf((*A)(nil)).Elem(), reflect.TypeOf((*B)(nil)).Elem()
+	ta, tb := reflect.TypeFor[A](), reflect.TypeFor[B]()
 	if ta == tb {
 		return true
 	}
@@ -40,7 +40,7 @@ func SameType[A, B any]() bool {
 
 // typeOf returns the reflect.Type of T without needing a value of T.
 func typeOf[T any]() reflect.Type {
-	return reflect.TypeOf((*T)(nil)).Elem()
+	return reflect.TypeFor[T]()
 }
 
 // IsSignedInteger returns true if t's kind is a signed integer type.
