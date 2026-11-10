@@ -1,6 +1,7 @@
 package prime_numbers
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/fxtlabs/primes"
@@ -222,5 +223,37 @@ func TestPrimes(t *testing.T) {
 
 	if sum := stream.Sum(Primes[int64]().TakeWhile(func(p int64) bool { return p < 10 })); sum != 2+3+5+7 {
 		t.Errorf("sum of Primes() < 10 = %d, want %d", sum, 2+3+5+7)
+	}
+}
+
+func TestPrimesIsReusable(t *testing.T) {
+	ps := Primes[int]()
+	first := ps.Limit(3).ToSlice()
+	second := ps.Limit(3).ToSlice()
+	want := []int{2, 3, 5}
+	if !slices.Equal(first, want) || !slices.Equal(second, want) {
+		t.Fatalf("consuming Primes twice gave %v then %v, want %v both times", first, second, want)
+	}
+}
+
+func TestPrimesLimitAndTakeWhile(t *testing.T) {
+	if got, want := Primes[int]().Limit(5).ToSlice(), []int{2, 3, 5, 7, 11}; !slices.Equal(got, want) {
+		t.Errorf("Primes().Limit(5) = %v, want %v", got, want)
+	}
+	if got := Primes[int]().TakeWhile(func(p int) bool { return p < 100 }).Count(); got != 25 {
+		t.Errorf("Primes().TakeWhile(< 100).Count() = %d, want 25", got)
+	}
+}
+
+func TestPrimesEarlyExit(t *testing.T) {
+	n := 0
+	for p := range Primes[int]().All() {
+		n++
+		if p > 50 {
+			break
+		}
+	}
+	if n != 16 { // 2..47 are 15 primes, then 53 triggers the break
+		t.Errorf("ranged over %d primes before break, want 16", n)
 	}
 }

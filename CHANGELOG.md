@@ -2,7 +2,7 @@
 
 All notable changes to eulerlib are documented here. This project follows [Semantic Versioning](https://semver.org/); because Go modules encode breaking changes in the import path, a major bump also means the module path changes (e.g. `.../v2` → `.../v3`).
 
-## Unreleased (v3.1.0)
+## v3.1.0
 
 No exported signatures change in this release.
 
@@ -15,6 +15,12 @@ No exported signatures change in this release.
 - `etc.Sort` uses `slices.SortFunc` instead of `sort.Slice` (still not stable).
 - Mechanical modernisations from `go fix` (`any`, `reflect.TypeFor`, `range n`, `strings.Builder`).
 - CI: `actions/setup-go@v5`, Go version taken from `go.mod` plus a `stable` job; checks `gofmt`, `go mod tidy -diff`, `go vet`, `go fix -diff`, and runs tests with `-race`.
+
+### Fixed
+
+- `prime_numbers.Primes()` was not reusable: the stream shared one iterator, so consuming it a second time continued where the first left off (`[2 3 5]`, then `[7 11 13]`). Each consumption now starts again at 2.
+- `num_theory.Factorize` looped up to `n` instead of `sqrt(n)`, so factorizing a large prime took O(n) steps (seconds for 10^9+7). It now stops at `sqrt(n)` (written as `i <= n/i` so it can't overflow) and is cross-checked against the old implementation for every n in [0, 5000].
+- `progress.ProgressBar`, `ProgressBarN` and `Spinner` created (and drew) their bar when the function was called rather than when iteration started, and ranging over the returned sequence twice reused an already finished bar. The bar is now created inside the sequence, so nothing is drawn before the loop starts and every loop gets a fresh bar.
 
 ## v3.0.0
 

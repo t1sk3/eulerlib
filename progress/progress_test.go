@@ -154,3 +154,45 @@ func TestWithWriterDoesNotWriteToStderr(t *testing.T) {
 		t.Fatalf("expected no stderr output with WithWriter, got %q", string(stderrOut))
 	}
 }
+
+func TestBarsAreNotDrawnBeforeIteration(t *testing.T) {
+	for name, mk := range map[string]func(w io.Writer){
+		"ProgressBar":  func(w io.Writer) { ProgressBar([]int{1, 2, 3}, WithWriter(w)) },
+		"ProgressBarN": func(w io.Writer) { ProgressBarN(3, WithWriter(w)) },
+		"Spinner":      func(w io.Writer) { Spinner(WithWriter(w)) },
+	} {
+		var buf bytes.Buffer
+		mk(&buf)
+		if buf.Len() != 0 {
+			t.Errorf("%s wrote %q before iteration started", name, buf.String())
+		}
+	}
+}
+
+func TestRangingTwiceDrawsTwoCompleteBars(t *testing.T) {
+	var buf bytes.Buffer
+	seq := ProgressBarN(3, WithWriter(&buf), progressbar.OptionThrottle(0))
+	for _, pass := range []int{1, 2} {
+		buf.Reset()
+		n := 0
+		for range seq {
+			n++
+		}
+		if n != 3 {
+			t.Fatalf("pass %d: got %d iterations, want 3", pass, n)
+		}
+		if out := buf.String(); !strings.Contains(out, "3/3") || !strings.Contains(out, "0/3") {
+			t.Errorf("pass %d: expected a full bar from 0/3 to 3/3, got %q", pass, out)
+		}
+	}
+
+	s := ProgressBar([]string{"a", "b"}, WithWriter(&buf), progressbar.OptionThrottle(0))
+	for _, pass := range []int{1, 2} {
+		buf.Reset()
+		for range s {
+		}
+		if out := buf.String(); !strings.Contains(out, "2/2") || !strings.Contains(out, "0/2") {
+			t.Errorf("ProgressBar pass %d: expected a full bar from 0/2 to 2/2, got %q", pass, out)
+		}
+	}
+}

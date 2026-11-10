@@ -208,7 +208,12 @@ func FirstNPrimes[E constraints.Integer](n E) []E {
 //
 // Bound it with Limit or TakeWhile before calling a terminal operation that
 // consumes every element, or it will run forever.
+//
+// The returned stream can be consumed any number of times; each consumption
+// starts again at 2.
 func Primes[E constraints.Integer]() stream.Stream[E] {
-	p := NewPrimeNumberIterator[E]()
-	return stream.Generate(p.Next)
+	return stream.FromSeq(func(yield func(E) bool) {
+		for p := E(2); yield(p); p = NextPrime(p) {
+		}
+	})
 }
