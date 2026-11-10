@@ -1,93 +1,114 @@
-// Package fibonacci provides functions for generating Fibonacci sequences
-// and computing individual Fibonacci numbers, including arbitrary-precision
-// variants backed by math/big.
+// Package fibonacci provides the Fibonacci numbers F(0) = 0, F(1) = 1,
+// F(n) = F(n-1) + F(n-2), as streams and as single terms, with
+// arbitrary-precision variants backed by math/big.
 package fibonacci
 
 import (
 	"math/big"
 
+	"github.com/t1sk3/eulerlib/v4/internal/mathx"
+	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
 )
 
-// Generates the Fibonaccisequence
-func GenFibo(limit int64) <-chan int64 {
-	chnl := make(chan int64)
-	fibos := []int64{1, 2, 3}
-	go func() {
-		for i := 0; int64(i) <= limit+3; i++ {
-			fibos = append(fibos, fibos[len(fibos)-1]+fibos[len(fibos)-2])
-			chnl <- fibos[i]
+// All returns the Fibonacci numbers 0, 1, 1, 2, 3, 5, ... that fit in E,
+// and ends at the largest one: All[int64]() has 93 elements, F(0) to
+// F(92), and All[uint8]() ends at 233. Bound it with Limit or TakeWhile:
+//
+//	fibonacci.All[int]().TakeWhile(stream.AtMost(4_000_000))
+//
+// The stream can be consumed any number of times.
+func All[E constraints.Integer]() stream.Stream[E] {
+	return stream.FromSeq(func(yield func(E) bool) {
+		max := mathx.MaxOf[E]()
+		a, b := E(0), E(1)
+		for {
+			if !yield(a) {
+				return
+			}
+			if a > max-b { // a+b would overflow: b is the last one that fits
+				yield(b)
+				return
+			}
+			a, b = b, a+b
 		}
-
-		close(chnl)
-	}()
-	return chnl
+	})
 }
 
-// Returns a slice with the first x Fibonacci numbers
-func Fibonacci(limit int64) (res []int64) {
-	for x := range GenFibo(limit) {
-		res = append(res, x)
-	}
-	return
-}
-
-// FibonacciSingle returns the nth fibonacci number.
-// The result is the same as the last element of Fibonacci(n)
-// but calculated while using less memory
-func FibonacciSingle[E constraints.Integer](n E) int64 {
-	if n < 2 {
-		return int64(n)
-	}
-	it := E(2)
-	fibs := []E{1, 1}
-	for it < n {
-		tmp := fibs[0]
-		fibs = fibs[1:]
-		fibs = append(fibs, fibs[0]+tmp)
-		it++
-	}
-	return int64(fibs[1])
-}
-
-// Generates the Fibonaccisequence in Big Integer
-func GenFiboBig(limit int64) <-chan big.Int {
-	chnl := make(chan big.Int)
-	fibos := []big.Int{*big.NewInt(0), *big.NewInt(1)}
-	go func() {
-		for i := int64(0); i <= limit+3; i++ {
-			fibos = append(fibos, *new(big.Int).Add(&fibos[len(fibos)-1], &fibos[len(fibos)-2]))
-			chnl <- fibos[i]
+// AllBig returns every Fibonacci number, 0, 1, 1, 2, ..., as a *big.Int.
+// The stream is infinite, so bound it with Limit or TakeWhile. Each element
+// is a new *big.Int that the caller may keep or modify.
+func AllBig() stream.Stream[*big.Int] {
+	return stream.FromSeq(func(yield func(*big.Int) bool) {
+		a, b := big.NewInt(0), big.NewInt(1)
+		for {
+			if !yield(new(big.Int).Set(a)) {
+				return
+			}
+			a.Add(a, b)
+			a, b = b, a
 		}
-
-		close(chnl)
-	}()
-	return chnl
+	})
 }
 
-// Returns a slice with the first x Fibonacci numbers in Big Integer
-func FibonacciBig(limit int64) (res []big.Int) {
-	res = []big.Int{*big.NewInt(0), *big.NewInt(1)}
-	for i := int64(0); i <= limit+3; i++ {
-		res = append(res, *new(big.Int).Add(&res[len(res)-1], &res[len(res)-2]))
+// First returns F(0), ..., F(n-1). If some of those do not fit in E, it
+// returns only the ones that do.
+func First[E constraints.Integer](n int) []E {
+	if n <= 0 {
+		return []E{}
 	}
-	return
+	return All[E]().Limit(n).ToSlice()
 }
 
-// FibonacciSingleBig returns the nth Fibonacci number as a *big.Int.
-// F(0)=0, F(1)=1, F(2)=1, ... Uses an iterative approach for exact precision.
-func FibonacciSingleBig(n int64) *big.Int {
+// Nth returns F(n). It panics if n < 0 or F(n) does not fit in E (use
+// NthBig for those).
+func Nth[E constraints.Integer](n int) E {
 	if n < 0 {
-		panic("FibonacciSingleBig: n must be non-negative")
+		panic("fibonacci: Nth with negative n")
 	}
-	if n == 0 {
-		return big.NewInt(0)
+	v, ok := All[E]().Skip(n).FindFirst().Value()
+	if !ok {
+		panic("fibonacci: Nth overflows the element type")
 	}
-	a := big.NewInt(0)
-	b := big.NewInt(1)
-	for i := int64(1); i < n; i++ {
+	return v
+}
+
+// NthBig returns F(n) as a *big.Int, using fast doubling in O(log n)
+// multiplications. It panics if n < 0.
+func NthBig(n int64) *big.Int {
+	if n < 0 {
+		panic("fibonacci: NthBig with negative n")
+	}
+	// Invariant: a = F(k), b = F(k+1), walking k through the bits of n.
+	a, b := big.NewInt(0), big.NewInt(1)
+	t1, t2 := new(big.Int), new(big.Int)
+	for i := 62; i >= 0; i-- {
+		// F(2k) = F(k) * (2F(k+1) - F(k)); F(2k+1) = F(k)^2 + F(k+1)^2
+		t1.Lsh(b, 1).Sub(t1, a).Mul(t1, a)
+		t2.Mul(a, a)
+		b.Mul(b, b).Add(b, t2)
+		a.Set(t1)
+		if n>>i&1 == 1 {
+			a.Add(a, b)
+			a, b = b, a
+		}
+	}
+	return a
+}
+
+// IndexOfFirstWithDigits returns the smallest n >= 1 such that F(n) has at
+// least d decimal digits (Project Euler #25). It panics if d < 1.
+func IndexOfFirstWithDigits(d int) int {
+	if d < 1 {
+		panic("fibonacci: IndexOfFirstWithDigits needs d >= 1")
+	}
+	threshold := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(d-1)), nil)
+	a, b := big.NewInt(1), big.NewInt(1) // F(1), F(2)
+	n := 1
+	for a.Cmp(threshold) < 0 {
 		a.Add(a, b)
 		a, b = b, a
+		n++
 	}
-	return new(big.Int).Set(b)
+	return n
 }

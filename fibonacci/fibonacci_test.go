@@ -2,124 +2,124 @@ package fibonacci
 
 import (
 	"math/big"
+	"slices"
 	"testing"
 
-	"github.com/t1sk3/eulerlib/v4/num_theory"
+	"github.com/t1sk3/eulerlib/v4/internal/testutil"
 )
 
-func collectInt64(ch <-chan int64) []int64 {
-	res := []int64{}
-	for v := range ch {
-		res = append(res, v)
+func TestAll(t *testing.T) {
+	if got := All[int]().Limit(10).ToSlice(); !slices.Equal(got, []int{0, 1, 1, 2, 3, 5, 8, 13, 21, 34}) {
+		t.Errorf("All().Limit(10) = %v", got)
 	}
-	return res
+	if got := All[int64]().Count(); got != 93 {
+		t.Errorf("All[int64]().Count() = %d, want 93", got)
+	}
+	if got := All[int64]().FindLast().Get(); got != 7540113804746346429 {
+		t.Errorf("last int64 Fibonacci = %d", got)
+	}
+	if got := All[uint64]().Count(); got != 94 {
+		t.Errorf("All[uint64]().Count() = %d, want 94", got)
+	}
+	if got := All[uint8]().ToSlice(); got[len(got)-1] != 233 || len(got) != 14 {
+		t.Errorf("All[uint8]() = %v", got)
+	}
+	if got := All[int8]().FindLast().Get(); got != 89 {
+		t.Errorf("All[int8]() ends at %d, want 89", got)
+	}
+	// Agrees with AllBig on every term that fits.
+	bigs := AllBig().Limit(93).ToSlice()
+	for i, v := range All[int64]().ToSlice() {
+		if bigs[i].Int64() != v {
+			t.Fatalf("F(%d): %d vs %s", i, v, bigs[i])
+		}
+	}
+	testutil.Reusable(t, All[int](), -1)
+	testutil.EarlyExit(t, All[int](), 5)
 }
 
-func collectBigInt(ch <-chan big.Int) []big.Int {
-	res := []big.Int{}
-	for v := range ch {
-		res = append(res, v)
+func TestAllBig(t *testing.T) {
+	s := AllBig().Limit(200).ToSlice()
+	for i := 2; i < len(s); i++ {
+		if new(big.Int).Add(s[i-1], s[i-2]).Cmp(s[i]) != 0 {
+			t.Fatalf("F(%d) != F(%d) + F(%d)", i, i-1, i-2)
+		}
+		if s[i] == s[i-1] {
+			t.Fatal("AllBig reuses *big.Int pointers")
+		}
 	}
-	return res
+	if s[100].String() != "354224848179261915075" {
+		t.Errorf("F(100) = %s", s[100])
+	}
+	s[5].SetInt64(-1) // modifying a yielded value must not affect the stream
+	if AllBig().Skip(6).FindFirst().Get().Int64() != 8 {
+		t.Error("AllBig affected by caller modification")
+	}
+	testutil.Reusable(t, AllBig(), 50)
+	testutil.EarlyExit(t, AllBig(), 5)
 }
 
-func TestGenFibo(t *testing.T) {
-	got := collectInt64(GenFibo(3))
-	want := []int64{1, 2, 3, 5, 8, 13, 21}
-	if len(got) != len(want) {
-		t.Fatalf("GenFibo(3) length = %d, want %d", len(got), len(want))
+func TestFirstNth(t *testing.T) {
+	if got := First[int](5); !slices.Equal(got, []int{0, 1, 1, 2, 3}) {
+		t.Errorf("First(5) = %v", got)
 	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("GenFibo(3)[%d] = %d, want %d", i, got[i], want[i])
+	if len(First[int](0)) != 0 || len(First[uint8](100)) != 14 {
+		t.Error("First edge cases")
+	}
+	all := All[int64]().ToSlice()
+	for n, want := range all {
+		if Nth[int64](n) != want {
+			t.Fatalf("Nth(%d) = %d, want %d", n, Nth[int64](n), want)
+		}
+	}
+	mustPanic(t, "Nth overflow", func() { Nth[int64](93) })
+	mustPanic(t, "Nth negative", func() { Nth[int](-1) })
+}
+
+func TestNthBig(t *testing.T) {
+	s := AllBig().Limit(1000).ToSlice()
+	for n, want := range s {
+		if got := NthBig(int64(n)); got.Cmp(want) != 0 {
+			t.Fatalf("NthBig(%d) = %s, want %s", n, got, want)
+		}
+	}
+	if NthBig(100).String() != "354224848179261915075" {
+		t.Error("NthBig(100)")
+	}
+	// F(2^20) has 219,140 digits; just check a known identity cheaply:
+	// gcd(F(m), F(n)) = F(gcd(m, n)).
+	g := new(big.Int).GCD(nil, nil, NthBig(6000), NthBig(4500))
+	if g.Cmp(NthBig(1500)) != 0 {
+		t.Error("gcd(F(6000), F(4500)) != F(1500)")
+	}
+	mustPanic(t, "NthBig negative", func() { NthBig(-1) })
+}
+
+func TestIndexOfFirstWithDigits(t *testing.T) {
+	if got := IndexOfFirstWithDigits(3); got != 12 { // F(12) = 144
+		t.Errorf("IndexOfFirstWithDigits(3) = %d, want 12", got)
+	}
+	if got := IndexOfFirstWithDigits(1); got != 1 {
+		t.Errorf("IndexOfFirstWithDigits(1) = %d, want 1", got)
+	}
+	// Brute force against AllBig for small d.
+	for d := 1; d <= 50; d++ {
+		want := AllBig().Map(func(b *big.Int) int { return len(b.String()) }).
+			Skip(1).
+			TakeWhile(func(l int) bool { return l < d }).
+			Count() + 1
+		if got := IndexOfFirstWithDigits(d); got != want {
+			t.Fatalf("IndexOfFirstWithDigits(%d) = %d, want %d", d, got, want)
 		}
 	}
 }
 
-func TestFibonacci(t *testing.T) {
-	got := Fibonacci(0)
-	want := []int64{1, 2, 3, 5}
-	if len(got) != len(want) {
-		t.Fatalf("Fibonacci(0) length = %d, want %d", len(got), len(want))
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("Fibonacci(0)[%d] = %d, want %d", i, got[i], want[i])
+func mustPanic(t *testing.T, name string, f func()) {
+	t.Helper()
+	defer func() {
+		if recover() == nil {
+			t.Errorf("%s: expected a panic", name)
 		}
-	}
-}
-
-func TestFibonacciSingle(t *testing.T) {
-	testCases := []struct {
-		n    int64
-		want int64
-	}{
-		{0, 0},
-		{1, 1},
-		{2, 1},
-		{10, 55},
-	}
-
-	for _, tc := range testCases {
-		got := FibonacciSingle(tc.n)
-		if got != tc.want {
-			t.Errorf("FibonacciSingle(%d) = %d, want %d", tc.n, got, tc.want)
-		}
-	}
-}
-
-func TestGenFiboBig(t *testing.T) {
-	got := collectBigInt(GenFiboBig(0))
-	want := []int64{0, 1, 1, 2}
-	if len(got) != len(want) {
-		t.Fatalf("GenFiboBig(0) length = %d, want %d", len(got), len(want))
-	}
-	for i := range want {
-		if got[i].Int64() != want[i] {
-			t.Fatalf("GenFiboBig(0)[%d] = %d, want %d", i, got[i].Int64(), want[i])
-		}
-	}
-}
-
-func TestFibonacciBig(t *testing.T) {
-	got := FibonacciBig(0)
-	want := []int64{0, 1, 1, 2, 3, 5}
-	if len(got) != len(want) {
-		t.Fatalf("FibonacciBig(0) length = %d, want %d", len(got), len(want))
-	}
-	for i := range want {
-		if got[i].Int64() != want[i] {
-			t.Fatalf("FibonacciBig(0)[%d] = %d, want %d", i, got[i].Int64(), want[i])
-		}
-	}
-}
-
-func TestFibonacciSingleBig(t *testing.T) {
-	got := FibonacciSingleBig(10)
-	if got.Int64() != 55 {
-		t.Fatalf("FibonacciSingleBig(10) = %d, want 55", got.Int64())
-	}
-}
-
-func TestFibonacciSingleBigPrecision(t *testing.T) {
-	// F(100) = 354224848179261915075 — too large for float64, verifies exact precision
-	want, _ := new(big.Int).SetString("354224848179261915075", 10)
-	got := FibonacciSingleBig(100)
-	if got.Cmp(want) != 0 {
-		t.Errorf("FibonacciSingleBig(100) = %s, want %s", got.String(), want.String())
-	}
-}
-
-func TestPowBigFloat(t *testing.T) {
-	base := big.NewFloat(3)
-	got := num_theory.PowBigFloat(base, 4)
-	f, _ := got.Float64()
-	if f != 81 {
-		t.Fatalf("PowBigFloat(3, 4) = %v, want 81", f)
-	}
-	// Verify the original base is not mutated
-	origF, _ := base.Float64()
-	if origF != 3 {
-		t.Fatalf("PowBigFloat mutated base: got %v, want 3", origF)
-	}
+	}()
+	f()
 }
