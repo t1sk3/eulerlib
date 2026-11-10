@@ -1,6 +1,10 @@
 package memo
 
-import "testing"
+import (
+	"sync"
+	"sync/atomic"
+	"testing"
+)
 
 func TestMemoizeCachesResult(t *testing.T) {
 	calls := 0
@@ -60,5 +64,38 @@ func TestMemoize2CachesResult(t *testing.T) {
 	}
 	if calls != 2 {
 		t.Errorf("fn called %d times, want 2 (one per distinct (a,b) pair)", calls)
+	}
+}
+
+func TestMemoizeConcurrentRecursive(t *testing.T) {
+	var calls atomic.Int64
+	var fib func(n int) int64
+	fib = MemoizeConcurrent(func(n int) int64 {
+		calls.Add(1)
+		if n < 2 {
+			return int64(n)
+		}
+		return fib(n-1) + fib(n-2)
+	})
+	var wg sync.WaitGroup
+	results := make([]int64, 8)
+	for g := range 8 {
+		wg.Go(func() { results[g] = fib(90) })
+	}
+	wg.Wait()
+	for _, r := range results {
+		if r != 2880067194370816120 {
+			t.Fatalf("fib(90) = %d", r)
+		}
+	}
+	// Each of the 91 keys is computed at least once, and at most once per
+	// goroutine.
+	if c := calls.Load(); c < 91 || c > 8*91 {
+		t.Errorf("fn called %d times", c)
+	}
+	before := calls.Load()
+	fib(90)
+	if calls.Load() != before {
+		t.Error("cached call recomputed")
 	}
 }

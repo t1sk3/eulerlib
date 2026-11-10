@@ -3,7 +3,10 @@
 // Euler (and slow to a crawl without a cache).
 package memo
 
-import "github.com/t1sk3/go-utils/types/pair"
+import (
+	"github.com/t1sk3/go-utils/concurrent"
+	"github.com/t1sk3/go-utils/types/pair"
+)
 
 // Memoize wraps fn so repeated calls with the same argument are computed
 // only once. It is not safe for concurrent use from multiple goroutines.
@@ -49,5 +52,24 @@ func Memoize2[K1, K2 comparable, V any](fn func(K1, K2) V) func(K1, K2) V {
 		v := fn(a, b)
 		cache[k] = v
 		return v
+	}
+}
+
+// MemoizeConcurrent is Memoize, but safe for use from several goroutines at
+// once (for example inside a stream.Parallel stage). fn runs without any
+// lock held, so a recursive fn is fine. Two goroutines asking for the same
+// missing key at the same time may both compute it; the first result
+// stored wins, and both callers get it.
+func MemoizeConcurrent[K comparable, V any](fn func(K) V) func(K) V {
+	// Not concurrent.Map.ComputeIfAbsent: that runs fn under the map's
+	// write lock, so a recursive fn would deadlock.
+	cache := new(concurrent.Map[K, V])
+	return func(k K) V {
+		if v, ok := cache.Get(k).Value(); ok {
+			return v
+		}
+		v := fn(k)
+		actual, _ := cache.PutIfAbsent(k, v)
+		return actual
 	}
 }
