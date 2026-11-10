@@ -10,6 +10,7 @@
 package digits
 
 import (
+	"math/big"
 	"strings"
 
 	"github.com/t1sk3/eulerlib/v4/internal/mathx"
@@ -57,6 +58,17 @@ func OfBase[E constraints.Integer](n E, base int) []E {
 	return out
 }
 
+// OfBigInt returns the decimal digits of |n|, most significant first.
+// OfBigInt(big.NewInt(0)) is [0].
+func OfBigInt(n *big.Int) []int {
+	s := strings.TrimPrefix(n.String(), "-")
+	ds := make([]int, len(s))
+	for i := 0; i < len(s); i++ {
+		ds[i] = int(s[i] - '0')
+	}
+	return ds
+}
+
 // FromDigits returns the number whose decimal digits are ds, most
 // significant first: the inverse of Of. FromDigits(nil) is 0.
 func FromDigits[E constraints.Integer](ds []E) E {
@@ -87,6 +99,23 @@ func SumString(s string) int64 {
 		if ch >= '0' && ch <= '9' {
 			res += int64(ch - '0')
 		}
+	}
+	return res
+}
+
+// SumBigInt returns the sum of the decimal digits of |n|.
+func SumBigInt(n *big.Int) int64 {
+	return SumString(n.String())
+}
+
+// SumDigitString returns the sum of the decimal digits in s, assuming every
+// byte of s is an ASCII digit ('0'-'9'). Unlike SumString, it does not skip
+// other characters, so it is faster but gives a meaningless result if s
+// contains any.
+func SumDigitString(s string) int64 {
+	var res int64
+	for i := 0; i < len(s); i++ {
+		res += int64(s[i] - '0')
 	}
 	return res
 }
