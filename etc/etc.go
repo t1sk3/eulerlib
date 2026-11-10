@@ -8,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -121,11 +120,11 @@ func Max[E constraints.Number](numbers ...E) E {
 
 // joins a slice of integers into a single string
 func JoinSlice[E constraints.Integer](s []E) string {
-	res := ""
+	var res strings.Builder
 	for _, e := range s {
-		res += strconv.Itoa(int(e))
+		res.WriteString(strconv.Itoa(int(e)))
 	}
-	return res
+	return res.String()
 }
 
 // joins a slice of strings into a single string
@@ -176,7 +175,7 @@ func RemoveDuplicateSlices(s [][]string) (res [][]string) {
 
 // returns the sum of the integers in the given slice
 func Sum[E constraints.Numeric](lst []E) E {
-	return stream.Fold(stream.FromSlice(lst), E(0), func(acc, v E) E { return acc + v })
+	return stream.FromSlice(lst).Fold(E(0), func(acc, v E) E { return acc + v })
 }
 
 // Product returns the product of all elements in lst. Returns 1 for an empty slice.
@@ -408,10 +407,17 @@ func Map[E any, F any](s []E, f func(E) F) (res []F) {
 	return
 }
 
-// sorts a slice based on the given function
+// Sort sorts s in place by the less function f and returns it. The sort is
+// not stable.
 func Sort[E any](s []E, f func(E, E) bool) []E {
-	sort.Slice(s, func(i, j int) bool {
-		return f(s[i], s[j])
+	slices.SortFunc(s, func(a, b E) int {
+		if f(a, b) {
+			return -1
+		}
+		if f(b, a) {
+			return 1
+		}
+		return 0
 	})
 	return s
 }
@@ -443,7 +449,7 @@ func UniqueCount[E comparable](s []E) map[E]int {
 // highest count, the one that occurs first in s is returned.
 func MostFrequent[E comparable](s []E) optional.Optional[pair.Pair[E, int]] {
 	counts := UniqueCount(s)
-	withCounts := stream.Map(stream.FromSlice(s), func(e E) pair.Pair[E, int] { return pair.Of(e, counts[e]) })
+	withCounts := stream.FromSlice(s).Map(func(e E) pair.Pair[E, int] { return pair.Of(e, counts[e]) })
 	return withCounts.Max(func(a, b pair.Pair[E, int]) int { return a.Second - b.Second })
 }
 

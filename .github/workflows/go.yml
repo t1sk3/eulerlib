@@ -1,28 +1,42 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: Go
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
-
   build:
+    name: ${{ matrix.go }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # go.mod's minimum, plus whatever the latest release is.
+        go: [ go.mod, stable ]
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.27'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go != 'go.mod' && matrix.go || '' }}
+          go-version-file: ${{ matrix.go == 'go.mod' && 'go.mod' || '' }}
 
-    - name: Build
-      run: go build -v ./...
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
 
-    - name: Test
-      run: go test -v ./...
+      - name: go mod tidy
+        run: go mod tidy -diff
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go fix
+        run: go fix -diff ./...
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -race ./...

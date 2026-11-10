@@ -655,6 +655,8 @@ func AmicablePairsBelow[E constraints.Integer](limit E) []pair.Pair[E, E] {
 	isSmallerOfPair := func(n E) bool {
 		return IsAmicable(n) && SumDivisors(n) > n
 	}
-	smaller := stream.Range(E(1), limit).Filter(isSmallerOfPair)
-	return stream.Map(smaller, func(n E) pair.Pair[E, E] { return pair.Of(n, SumDivisors(n)) }).ToSlice()
+	return stream.Range(E(1), limit).
+		Filter(isSmallerOfPair).
+		Map(func(n E) pair.Pair[E, E] { return pair.Of(n, SumDivisors(n)) }).
+		ToSlice()
 }

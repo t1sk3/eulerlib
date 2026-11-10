@@ -2,6 +2,20 @@
 
 All notable changes to eulerlib are documented here. This project follows [Semantic Versioning](https://semver.org/); because Go modules encode breaking changes in the import path, a major bump also means the module path changes (e.g. `.../v2` → `.../v3`).
 
+## Unreleased (v3.1.0)
+
+No exported signatures change in this release.
+
+### Changed
+
+- The minimum Go version is now **1.27** (`go 1.27.0` in `go.mod`). Go 1.24 no longer receives security fixes, and CI already only ran on 1.27, so the old minimum was never tested.
+- go-utils is upgraded from v0.1.0 to **v0.6.1**. The separate `github.com/t1sk3/go-utils/types` module is no longer required: since go-utils v0.5.1 those packages live in the root module, and requiring both caused "ambiguous import" errors for projects that also depend on a recent go-utils. If your own `go.mod` still lists it, run `go get github.com/t1sk3/go-utils/types@none`.
+- go-utils v0.6.1 removed its package-level `stream.Map`/`stream.Fold`/... functions in favour of generic methods, so eulerlib's internal calls now use the method form (`s.Map(f)`, `s.Fold(init, f)`). No behaviour change.
+- Dependency refresh: `go-echarts` v2.7.3, `schollz/progressbar` v3.19.1, `golang.org/x/sys` v0.50.0, `golang.org/x/term` v0.48.0.
+- `etc.Sort` uses `slices.SortFunc` instead of `sort.Slice` (still not stable).
+- Mechanical modernisations from `go fix` (`any`, `reflect.TypeFor`, `range n`, `strings.Builder`).
+- CI: `actions/setup-go@v5`, Go version taken from `go.mod` plus a `stable` job; checks `gofmt`, `go mod tidy -diff`, `go vet`, `go fix -diff`, and runs tests with `-race`.
+
 ## v3.0.0
 
 ### Breaking

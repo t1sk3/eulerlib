@@ -33,7 +33,7 @@ func Scatter2D[E constraints.Number](points []Point2D[E], path string, opts ...O
 	for i, p := range points {
 		data[i] = eopts.ScatterData{
 			Name:  p.Label,
-			Value: []interface{}{float64(p.X), float64(p.Y)},
+			Value: []any{float64(p.X), float64(p.Y)},
 		}
 	}
 

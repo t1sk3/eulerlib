@@ -1,6 +1,9 @@
 package etc
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func TestReverseString(t *testing.T) {
 	input := "abcdefg"
@@ -169,5 +172,26 @@ func TestMostFrequent(t *testing.T) {
 
 	if _, ok := MostFrequent([]int{}).Value(); ok {
 		t.Error("MostFrequent([]) ok = true, want false")
+	}
+}
+
+func TestSort(t *testing.T) {
+	less := func(a, b int) bool { return a < b }
+	cases := [][]int{
+		{},
+		{1},
+		{3, 1, 2},
+		{1, 2, 3, 4, 5},
+		{5, 4, 3, 2, 1},
+		{2, 2, 1, 1, 3, 3},
+		{7, 7, 7, 7},
+	}
+	for _, c := range cases {
+		want := slices.Clone(c)
+		slices.Sort(want)
+		got := Sort(slices.Clone(c), less)
+		if !slices.Equal(got, want) {
+			t.Errorf("Sort(%v) = %v, want %v", c, got, want)
+		}
 	}
 }
