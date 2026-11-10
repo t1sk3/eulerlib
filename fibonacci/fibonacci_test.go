@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/t1sk3/eulerlib/v3/num_theory"
+	"github.com/t1sk3/eulerlib/v4/num_theory"
 )
 
 func collectInt64(ch <-chan int64) []int64 {

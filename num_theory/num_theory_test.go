@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/t1sk3/eulerlib/v3/etc"
-	"github.com/t1sk3/eulerlib/v3/prime_numbers"
+	"github.com/t1sk3/eulerlib/v4/etc"
+	"github.com/t1sk3/eulerlib/v4/prime_numbers"
 )
 
 func TestFactorial(t *testing.T) {
