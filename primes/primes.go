@@ -20,52 +20,16 @@ import (
 	"github.com/t1sk3/go-utils/types/optional"
 )
 
-// mrBases are the first 12 primes. Using all of them as Miller–Rabin
-// witnesses is deterministic for every n < 3.3e24, which covers uint64.
-var mrBases = [...]uint64{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}
-
 // IsPrime reports whether n is prime. It is exact for every value of every
 // integer type (deterministic Miller–Rabin), and false for n < 2.
 func IsPrime[E constraints.Integer](n E) bool {
 	if n < 2 {
 		return false
 	}
-	return isPrime64(uint64(n))
+	return mathx.IsPrime(uint64(n))
 }
 
-func isPrime64(n uint64) bool {
-	if n < 2 {
-		return false
-	}
-	for _, p := range mrBases {
-		if n%p == 0 {
-			return n == p
-		}
-	}
-	if n < 41*41 {
-		return true
-	}
-	d, s := n-1, 0
-	for d%2 == 0 {
-		d /= 2
-		s++
-	}
-outer:
-	for _, a := range mrBases {
-		x := mathx.PowMod(a, d, n)
-		if x == 1 || x == n-1 {
-			continue
-		}
-		for r := 1; r < s; r++ {
-			x = mathx.MulMod(x, x, n)
-			if x == n-1 {
-				continue outer
-			}
-		}
-		return false
-	}
-	return true
-}
+func isPrime64(n uint64) bool { return mathx.IsPrime(n) }
 
 // NextPrime returns the smallest prime greater than n. It panics if that
 // prime does not fit in E (for example NextPrime(uint8(251))).
