@@ -126,3 +126,53 @@ func TestAbs64(t *testing.T) {
 		t.Error("Abs64")
 	}
 }
+
+func TestIsPrimeAgainstBig(t *testing.T) {
+	r := rand.New(rand.NewPCG(11, 12))
+	for n := range uint64(100_000) {
+		if IsPrime(n) != new(big.Int).SetUint64(n).ProbablyPrime(20) {
+			t.Fatalf("IsPrime(%d) wrong", n)
+		}
+	}
+	for range 20_000 {
+		n := r.Uint64() | 1
+		if IsPrime(n) != new(big.Int).SetUint64(n).ProbablyPrime(20) {
+			t.Fatalf("IsPrime(%d) wrong", n)
+		}
+	}
+}
+
+func TestFactor(t *testing.T) {
+	check := func(n uint64) {
+		t.Helper()
+		fs := Factor(n)
+		prod := uint64(1)
+		for i, p := range fs {
+			if !IsPrime(p) || (i > 0 && fs[i-1] > p) {
+				t.Fatalf("Factor(%d) = %v: not ascending primes", n, fs)
+			}
+			prod *= p
+		}
+		if (n >= 2 && prod != n) || (n < 2 && len(fs) != 0) {
+			t.Fatalf("Factor(%d) = %v: product %d", n, fs, prod)
+		}
+	}
+	for n := range uint64(20_000) {
+		check(n)
+	}
+	for _, n := range []uint64{
+		math.MaxUint64,
+		18_446_744_073_709_551_557,    // prime
+		4_294_967_291 * 4_294_967_279, // two 32-bit primes
+		1_000_000_007 * 998_244_353,   // two 30-bit primes
+		999_983 * 999_983 * 17,        // square of a prime times a small one
+		1 << 63,
+		3_825_123_056_546_413_051, // strong pseudoprime to many bases
+	} {
+		check(n)
+	}
+	r := rand.New(rand.NewPCG(13, 14))
+	for range 2_000 {
+		check(r.Uint64())
+	}
+}
