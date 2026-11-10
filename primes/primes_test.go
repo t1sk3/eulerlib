@@ -278,3 +278,34 @@ func BenchmarkNewSieve10M(b *testing.B) {
 		NewSieve(10_000_000)
 	}
 }
+
+// referenceBetween lists the primes in [lo, hi] by testing each number with
+// isPrime64 (Miller–Rabin), which is checked against math/big above and
+// shares no code with the sieve.
+func referenceBetween(lo, hi uint64) []uint64 {
+	out := []uint64{}
+	for n := lo; ; n++ {
+		if isPrime64(n) {
+			out = append(out, n)
+		}
+		if n == hi {
+			return out
+		}
+	}
+}
+
+func TestSegmentedLargeRanges(t *testing.T) {
+	ranges := [][2]uint64{
+		// spans three segments
+		{1_000_000_000_000, 1_000_000_000_000 + 3*2*segOdds + 13},
+		// crosses the point where the sieve switches to Miller–Rabin
+		{maxBase*maxBase - 3000, maxBase*maxBase + 3000},
+		{math.MaxUint64 - 5000, math.MaxUint64},
+	}
+	for _, r := range ranges {
+		want := referenceBetween(r[0], r[1])
+		if got := Between(r[0], r[1]).ToSlice(); !slices.Equal(got, want) {
+			t.Errorf("Between(%d, %d): got %d primes, want %d", r[0], r[1], len(got), len(want))
+		}
+	}
+}

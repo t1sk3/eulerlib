@@ -4,6 +4,8 @@ import (
 	"iter"
 	"math/bits"
 
+	"github.com/t1sk3/eulerlib/v4/internal/mathx"
+
 	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
 )
@@ -127,8 +129,20 @@ func (s *Sieve[E]) Stream() stream.Stream[E] {
 	return stream.FromSeq(s.All())
 }
 
+// segOdds is the number of odd numbers per segment of the segmented sieve:
+// 2^18 bits = 32 KiB, which fits in a typical L1/L2 cache.
+const segOdds = 1 << 18
+
+// maxBase bounds the base primes the segmented sieve keeps (about 1.1
+// million primes, 8.5 MiB). Segments ending above maxBase^2 = 2^48 are
+// tested with Miller–Rabin instead.
+const maxBase = 1 << 24
+
 // segmented calls yield with every prime p, lo <= p <= hi, in ascending
-// order, until yield returns false.
+// order, until yield returns false. It is a segmented sieve of
+// Eratosthenes over odd numbers: memory stays at one 32 KiB segment plus
+// the odd primes up to sqrt of the current segment's end, however far it
+// runs. All state is local, so every call starts from scratch.
 func segmented(lo, hi uint64, yield func(uint64) bool) {
 	if lo <= 2 && hi >= 2 {
 		if !yield(2) {
@@ -139,14 +153,94 @@ func segmented(lo, hi uint64, yield func(uint64) bool) {
 		lo = 3
 	}
 	if lo%2 == 0 {
-		lo++
+		lo++ // can't overflow: MaxUint64 is odd
 	}
-	for c := lo; c <= hi && c >= lo; c += 2 {
-		if isPrime64(c) && !yield(c) {
+	if lo > hi {
+		return
+	}
+	if hi%2 == 0 {
+		hi-- // the largest candidate is odd
+	}
+
+	var (
+		base      []uint64 // odd primes <= baseLimit
+		baseLimit uint64
+		seg       = make([]uint64, segOdds/64)
+	)
+	for segLo := lo; ; {
+		// The segment holds the odd numbers segLo, segLo+2, ..., segHi.
+		segHi := hi
+		if hi-segLo > 2*(segOdds-1) {
+			segHi = segLo + 2*(segOdds-1)
+		}
+		n := (segHi-segLo)/2 + 1
+		words := seg[:(n+63)/64]
+		clear(words)
+
+		r := mathx.Isqrt(segHi)
+		if r > maxBase {
+			// Sieving here would need every prime up to sqrt(segHi), which
+			// is too much memory, so test each odd candidate directly.
+			for c := segLo; ; c += 2 {
+				if isPrime64(c) && !yield(c) {
+					return
+				}
+				if c >= hi {
+					return
+				}
+			}
+		}
+		if r > baseLimit {
+			// Grow the base primes geometrically so they are rebuilt only
+			// O(log) times.
+			newLimit := min(max(r, 2*baseLimit, 1024), maxBase)
+			base = base[:0]
+			for p := range NewSieve(newLimit).All() {
+				if p != 2 {
+					base = append(base, p)
+				}
+			}
+			baseLimit = newLimit
+		}
+
+		for _, p := range base {
+			if p > segHi/p {
+				break
+			}
+			// First odd multiple of p that is >= max(p*p, segLo).
+			start := p * p
+			if start < segLo {
+				start = segLo + (p-segLo%p)%p
+				if start%2 == 0 {
+					start += p
+				}
+				if start < segLo || start > segHi { // overflow, or no multiple here
+					continue
+				}
+			}
+			for j := (start - segLo) / 2; j < n; j += p {
+				words[j/64] |= 1 << (j % 64)
+			}
+		}
+
+		for wi, w := range words {
+			free := ^w
+			for free != 0 {
+				b := uint64(bits.TrailingZeros64(free))
+				free &= free - 1
+				i := uint64(wi)*64 + b
+				if i >= n {
+					break
+				}
+				if !yield(segLo + 2*i) {
+					return
+				}
+			}
+		}
+
+		if segHi >= hi {
 			return
 		}
-		if c > hi-2 {
-			return
-		}
+		segLo = segHi + 2
 	}
 }
