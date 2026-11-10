@@ -16,10 +16,7 @@ import (
 // math.Sqrt on a float64 is only exact up to 2^53, so the float estimate is
 // corrected by at most a few steps in each direction.
 func Isqrt(n uint64) uint64 {
-	r := uint64(math.Sqrt(float64(n)))
-	if r > math.MaxUint32 {
-		r = math.MaxUint32
-	}
+	r := min(uint64(math.Sqrt(float64(n))), math.MaxUint32)
 	for r*r > n {
 		r--
 	}
