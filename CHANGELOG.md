@@ -2,6 +2,55 @@
 
 All notable changes to eulerlib are documented here. This project follows [Semantic Versioning](https://semver.org/); because Go modules encode breaking changes in the import path, a major bump also means the module path changes (e.g. `.../v2` → `.../v3`).
 
+## v4.0.0
+
+The migration table, with code, is in [readme.md](readme.md#upgrading-from-v3).
+
+### Breaking
+
+- The module path is now `github.com/t1sk3/eulerlib/v4`.
+- Packages renamed to Go style: `prime_numbers` → `primes`, `num_theory` → `numtheory` (combinatorics moved to the new `combinatorics` package, digit helpers to `digits`).
+- Removed `etc` (its Euler-specific parts moved to `digits` and `numtheory`; the rest is covered by go-utils `stream`, `slices` and builtins), `utils` (obsolete reflection checks) and `vector` (use go-utils `types/vector`; coordinate helpers moved to `geometry`). Complex-valued vectors are no longer supported.
+- Lazy and infinite sequences are `stream.Stream[E]`; key/value results are `iter.Seq2`. Removed every channel-returning function (`PrimeGenerator`, `GenFibo`, `GenFiboBig`) and `PrimeNumberIterator`.
+- Factorizations use `int` exponents: `Factorize` returns `map[E]int`; `FactorizeBigInt` and `PrimeFactorsBigInt` became one `FactorizeBig` returning `[]pair.Pair[*big.Int, int]`.
+- `PowMod` returns `E` instead of `int64`; `Pow` takes an `int` exponent; `CountDivisors` and `digits.Count` return `int`.
+- `Permutations`/`Combinations` are lazy streams that never modify their input; `Combinations(set, 0)` no longer means "all sizes" (use `Subsets`).
+- Fibonacci numbers start at F(0) = 0 everywhere (`GenFibo` started at 1, 2, 3).
+- `progress.ProgressBar` → `progress.Slice`, `progress.ProgressBarN` → `progress.N`.
+- `vector.HexCoordinate` (pointer, embedding `Vector2`) → `geometry.Hex[E]{Q, R}`, a comparable value type.
+- Behaviour changes: `digits.IsPandigital` requires digits 1–9 **exactly once** (v3's `etc.IsPandigital` only checked presence); `figurate.IsPentagonal(0)` and `IsHexagonal(0)` are now true, like `IsTriangular(0)`; `AmicablePairs(limit)` requires both members below `limit`; `Gcd()` returns 0 and `Lcm()` returns 1 instead of panicking; `digits.ToBase` panics on a base outside 2..62 instead of returning `""`; `sequences.Collatz` panics instead of silently overflowing E; `FloatIsInteger(±Inf)` is false.
+
+### Added
+
+- `primes`: `PrevPrime`, `Sieve` (bitset, with `Has`, `IsPrime`, `Count`, `All`, `Stream`), `All`/`From`/`Between` streams backed by a segmented sieve, `UpTo`, `First`, `Count`, `Sum`.
+- `numtheory`: `Factors` (`iter.Seq2`), `FactorsSPF`, `DistinctPrimeFactors`, `SigmaSieve`, `MulMod`, `Isqrt`, predicate builders `DivisibleBy`, `DivisibleByAny`, `CoprimeTo`, collectors `Product`, `GcdOf`, `LcmOf`.
+- `combinatorics`: `LexPermutations`, `NthPermutation`, `Subsets`, `CartesianProduct`, `PartitionTable`.
+- `digits`: `OfBase`, `FromDigits`, `Reverse`, `IsPalindromeInBase`, `IsPandigitalN`, `Concat`, `ConcatString`, `SumOf` collector.
+- `fibonacci.IndexOfFirstWithDigits`; `figurate.NthSquare`, `NthPolygonal` and streams for every kind; `sequences.CollatzLengths`; `pythagoras.Triplet`, `PrimitiveTriplets`, `TripletsWithPerimeterAtMost`; `geometry.HexRing`, `Hex.Distance`, `Hex.Neighbors`; `memo.MemoizeConcurrent`; `progress.Seq`, `progress.Stream`; `plot.PointFromVec2/Vec3/Pair`, `Points2D`, `Points3D`.
+- Runnable `Example` tests in every package, and `example_euler_test.go` solving Euler #1, #5, #7, #10, #14, #21, #24 and #45, each checked against a brute-force solution.
+
+### Changed
+
+- `IsPrime` is a deterministic Miller–Rabin test, exact for all 64-bit values.
+- `Factors`, `Factorize`, `Divisors`, `CountDivisors`, `SumDivisors` and `Totient` factorize with trial division plus Pollard's rho, so they are fast for every 64-bit input.
+- `Divisors` is sorted ascending.
+- `NthBig` (was `FibonacciSingleBig`) uses fast doubling.
+- `LongestCollatz` uses a memoised length table.
+- `CRT` combines congruences with overflow-free modular multiplication.
+
+### Fixed
+
+- `IsPrime`, `IsSquare` and `figurate.Is*` used `math.Sqrt` on float64 (exact only up to 2^53), and `figurate.Is*` overflowed computing `8n+1`/`24n+1`; all are now exact for every value of their type.
+- `PowMod` required `p < 2^31`; it is now exact for any modulus.
+- `Combinations` used a bitmask and broke for 64 or more elements.
+- `Permutations` modified the caller's slice.
+- `PrimeCount` was O(n√n) and `Primes`/`NextPrime` used trial division per candidate; the segmented sieve makes the first million primes ~260× faster (5.1 s → 19.5 ms).
+- The channel generators leaked a goroutine when the caller stopped early.
+- `etc.DecimalToBase` was wrong for `MinInt64` and for `uint64` values above `MaxInt64`; `digits.ToBase` is exact.
+- `etc.IsPandigitalInBaseString` could not read letter digits (bases above 10).
+- `CRT` could overflow for moduli whose product is close to `MaxInt64`.
+- `num_theory.AmicablePairsBelow` could return pairs whose larger member was not below the limit.
+
 ## v3.1.0
 
 No exported signatures change in this release.
