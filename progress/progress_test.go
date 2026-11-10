@@ -4,19 +4,23 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/schollz/progressbar/v3"
+
+	"github.com/t1sk3/eulerlib/v4/internal/testutil"
+	"github.com/t1sk3/go-utils/stream"
 )
 
-func TestProgressBarYieldsIndexAndElement(t *testing.T) {
+func TestSliceYieldsIndexAndElement(t *testing.T) {
 	s := []string{"a", "b", "c"}
 	var buf bytes.Buffer
 
 	var gotIdx []int
 	var gotVal []string
-	for i, e := range ProgressBar(s, WithWriter(&buf)) {
+	for i, e := range Slice(s, WithWriter(&buf)) {
 		gotIdx = append(gotIdx, i)
 		gotVal = append(gotVal, e)
 	}
@@ -34,12 +38,12 @@ func TestProgressBarYieldsIndexAndElement(t *testing.T) {
 	}
 }
 
-func TestProgressBarStopsOnBreak(t *testing.T) {
+func TestSliceStopsOnBreak(t *testing.T) {
 	s := []int{1, 2, 3, 4, 5}
 	var buf bytes.Buffer
 
 	var got []int
-	for i, e := range ProgressBar(s, WithWriter(&buf), progressbar.OptionThrottle(0)) {
+	for i, e := range Slice(s, WithWriter(&buf), progressbar.OptionThrottle(0)) {
 		got = append(got, e)
 		if i == 1 {
 			break
@@ -54,11 +58,11 @@ func TestProgressBarStopsOnBreak(t *testing.T) {
 	}
 }
 
-func TestProgressBarN(t *testing.T) {
+func TestN(t *testing.T) {
 	var buf bytes.Buffer
 
 	var got []int
-	for i := range ProgressBarN(4, WithWriter(&buf)) {
+	for i := range N(4, WithWriter(&buf)) {
 		got = append(got, i)
 	}
 
@@ -73,11 +77,11 @@ func TestProgressBarN(t *testing.T) {
 	}
 }
 
-func TestProgressBarNEmpty(t *testing.T) {
+func TestNEmpty(t *testing.T) {
 	var buf bytes.Buffer
 
 	count := 0
-	for range ProgressBarN(0, WithWriter(&buf)) {
+	for range N(0, WithWriter(&buf)) {
 		count++
 	}
 
@@ -117,7 +121,7 @@ func TestSpinnerStopsOnBreak(t *testing.T) {
 func TestWithLabelAndWidth(t *testing.T) {
 	var buf bytes.Buffer
 
-	for range ProgressBarN(1, WithWriter(&buf), WithLabel("euler"), WithWidth(10)) {
+	for range N(1, WithWriter(&buf), WithLabel("euler"), WithWidth(10)) {
 	}
 
 	out := buf.String()
@@ -139,7 +143,7 @@ func TestWithWriterDoesNotWriteToStderr(t *testing.T) {
 	defer func() { os.Stderr = oldStderr }()
 
 	var buf bytes.Buffer
-	for range ProgressBarN(1, WithWriter(&buf)) {
+	for range N(1, WithWriter(&buf)) {
 	}
 
 	if err := w.Close(); err != nil {
@@ -157,9 +161,9 @@ func TestWithWriterDoesNotWriteToStderr(t *testing.T) {
 
 func TestBarsAreNotDrawnBeforeIteration(t *testing.T) {
 	for name, mk := range map[string]func(w io.Writer){
-		"ProgressBar":  func(w io.Writer) { ProgressBar([]int{1, 2, 3}, WithWriter(w)) },
-		"ProgressBarN": func(w io.Writer) { ProgressBarN(3, WithWriter(w)) },
-		"Spinner":      func(w io.Writer) { Spinner(WithWriter(w)) },
+		"Slice":   func(w io.Writer) { Slice([]int{1, 2, 3}, WithWriter(w)) },
+		"N":       func(w io.Writer) { N(3, WithWriter(w)) },
+		"Spinner": func(w io.Writer) { Spinner(WithWriter(w)) },
 	} {
 		var buf bytes.Buffer
 		mk(&buf)
@@ -171,7 +175,7 @@ func TestBarsAreNotDrawnBeforeIteration(t *testing.T) {
 
 func TestRangingTwiceDrawsTwoCompleteBars(t *testing.T) {
 	var buf bytes.Buffer
-	seq := ProgressBarN(3, WithWriter(&buf), progressbar.OptionThrottle(0))
+	seq := N(3, WithWriter(&buf), progressbar.OptionThrottle(0))
 	for _, pass := range []int{1, 2} {
 		buf.Reset()
 		n := 0
@@ -186,13 +190,47 @@ func TestRangingTwiceDrawsTwoCompleteBars(t *testing.T) {
 		}
 	}
 
-	s := ProgressBar([]string{"a", "b"}, WithWriter(&buf), progressbar.OptionThrottle(0))
+	s := Slice([]string{"a", "b"}, WithWriter(&buf), progressbar.OptionThrottle(0))
 	for _, pass := range []int{1, 2} {
 		buf.Reset()
 		for range s {
 		}
 		if out := buf.String(); !strings.Contains(out, "2/2") || !strings.Contains(out, "0/2") {
-			t.Errorf("ProgressBar pass %d: expected a full bar from 0/2 to 2/2, got %q", pass, out)
+			t.Errorf("Slice pass %d: expected a full bar from 0/2 to 2/2, got %q", pass, out)
 		}
+	}
+}
+
+func TestSeqAndStream(t *testing.T) {
+	var buf bytes.Buffer
+	src := stream.Range(0, 10)
+	got := slices.Collect(Seq(src.All(), 10, WithWriter(&buf), progressbar.OptionThrottle(0)))
+	if !slices.Equal(got, src.ToSlice()) || !strings.Contains(buf.String(), "10/10") {
+		t.Fatalf("Seq = %v, output %q", got, buf.String())
+	}
+
+	buf.Reset()
+	s := Stream(src, 10, WithWriter(&buf), progressbar.OptionThrottle(0))
+	if buf.Len() != 0 {
+		t.Fatal("Stream drew before being consumed")
+	}
+	if sum := stream.Sum(s); sum != 45 || !strings.Contains(buf.String(), "10/10") {
+		t.Fatalf("Stream sum = %d, output %q", sum, buf.String())
+	}
+	buf.Reset()
+	if sum := stream.Sum(s); sum != 45 || !strings.Contains(buf.String(), "10/10") {
+		t.Fatalf("second consumption: sum %d, output %q", sum, buf.String())
+	}
+	testutil.Reusable(t, Stream(src, 10, WithWriter(io.Discard)), -1)
+	testutil.EarlyExit(t, Stream(stream.Iterate(0, func(i int) int { return i + 1 }), -1, WithWriter(io.Discard)), 5)
+
+	// total < 0 draws a spinner.
+	buf.Reset()
+	n := 0
+	for range Seq(stream.Range(0, 3).All(), -1, WithWriter(&buf)) {
+		n++
+	}
+	if n != 3 || buf.Len() == 0 {
+		t.Errorf("spinner Seq: %d elements, output %q", n, buf.String())
 	}
 }
