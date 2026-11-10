@@ -1,285 +1,193 @@
 # eulerlib
 
-A generic Go library of number-theory utilities for solving [Project Euler](https://projecteuler.net/) problems. All functions are generic over Go's built-in numeric types via type constraints.
+A generic Go library of number-theory utilities for solving [Project Euler](https://projecteuler.net/) problems. Functions are generic over Go's integer and float types, lazy sequences are [go-utils](https://github.com/t1sk3/go-utils) `stream.Stream`s, and everything is exact over the full range of 64-bit integers.
 
 ```
-go get github.com/t1sk3/eulerlib/v3
+go get github.com/t1sk3/eulerlib/v4
 ```
 
 Requires **Go 1.27+**.
 
-> **v3 is a breaking change from v2** — see [Type Constraints and Upgrading from v2](#type-constraints-and-upgrading-from-v2) and [CHANGELOG.md](CHANGELOG.md) before upgrading.
-
-eulerlib is split into small, focused packages instead of one flat package — import only what you need:
+> **v4 is a breaking change from v3**: packages were renamed and reorganised, and `etc`, `utils` and `vector` are gone. See [Upgrading from v3](#upgrading-from-v3) and [CHANGELOG.md](CHANGELOG.md).
 
 ```go
 import (
-	"github.com/t1sk3/eulerlib/v3/prime_numbers"
-	"github.com/t1sk3/eulerlib/v3/num_theory"
-	"github.com/t1sk3/eulerlib/v3/vector"
+	"github.com/t1sk3/eulerlib/v4/numtheory"
+	"github.com/t1sk3/eulerlib/v4/primes"
+	"github.com/t1sk3/go-utils/stream"
 )
 
-prime_numbers.IsPrime(97)        // true
-num_theory.Factorize(int64(360)) // map[2:3 3:2 5:1]
-vector.NewVector([]int{1, 2, 3}) // *Vector[int]
+primes.IsPrime(uint64(18446744073709551557))         // true (largest 64-bit prime)
+numtheory.Factorize(int64(360))                       // map[2:3 3:2 5:1]
+stream.Sum(primes.Between(2, 2_000_000))              // 142913828922 (Euler #10)
+primes.All[int]().Skip(10_000).FindFirst().Get()      // 104743 (Euler #7)
 ```
 
-| Package | Import path | Covers |
-|---|---|---|
-| `prime_numbers` | `.../v3/prime_numbers` | Primality, prime listing/counting/generation, prime iterator |
-| `num_theory` | `.../v3/num_theory` | Divisors, GCD/LCM, factorization, powers, modular arithmetic, combinatorics |
-| `fibonacci` | `.../v3/fibonacci` | Fibonacci sequences and single terms (incl. `big.Int`), Collatz-adjacent helpers |
-| `figurate` | `.../v3/figurate` | Triangular, pentagonal, and hexagonal numbers |
-| `sequences` | `.../v3/sequences` | Collatz sequence and length |
-| `pythagoras` | `.../v3/pythagoras` | Pythagorean triplet check |
-| `vector` | `.../v3/vector` | N-dimensional, 2D, and 3D vector arithmetic; cartesian/hexagonal coordinate operations |
-| `etc` | `.../v3/etc` | Generic slice/string/file utilities (min/max, filter/map/reduce, dedup, ranges, base conversion, file I/O) |
-| `utils` | `.../v3/utils` | Reflection-based numeric/comparable type checks (`SameType`, `IsInteger`, ...) |
-| `progress` | `.../v3/progress` | Live progress bar (and open-ended spinner) for `range` loops over a slice or a count |
-| `stopwatch` | `.../v3/stopwatch` | Timing helper for benchmarking brute-force runs |
-| `memo` | `.../v3/memo` | Generic memoization wrappers for recursive/DP-style brute forces |
-| `plot` | `.../v3/plot` | Interactive HTML 2D/3D scatter plots (via ECharts) for visualizing data points |
+| Package | Covers |
+|---|---|
+| [`primes`](primes) | Primality (deterministic Miller–Rabin), bitset `Sieve`, segmented-sieve prime streams, smallest-factor table |
+| [`numtheory`](numtheory) | Divisors and divisor sums, factorization (Pollard's rho), gcd/lcm, modular arithmetic, powers and roots, totient/Möbius, predicate builders, collectors |
+| [`combinatorics`](combinatorics) | Factorial, binomial, partitions, lazy permutations/combinations/subsets/Cartesian products |
+| [`digits`](digits) | Digit slices and sums, reversal, palindromes, pandigital checks, concatenation, base conversion |
+| [`fibonacci`](fibonacci) | Fibonacci streams and n-th terms (incl. `big.Int`, fast doubling) |
+| [`figurate`](figurate) | Triangular, square, pentagonal, hexagonal and s-gonal numbers, exact tests, streams |
+| [`sequences`](sequences) | Collatz sequence, lengths, memoised length table |
+| [`pythagoras`](pythagoras) | Pythagorean `Triplet`, triplet streams via Euclid's formula |
+| [`geometry`](geometry) | Colinearity and quadrants on go-utils `vector.Vec2`, axial hex-grid coordinates |
+| [`memo`](memo) | Memoization wrappers, including a goroutine-safe one |
+| [`progress`](progress) | Live progress bars over slices, counts, `iter.Seq`s and streams |
+| [`stopwatch`](stopwatch) | Timing helper for brute-force runs |
+| [`plot`](plot) | Interactive HTML scatter plots (2D/3D) and CSV export |
 
-Each package also has full [godoc](https://pkg.go.dev/github.com/t1sk3/eulerlib/v3) comments on every exported symbol.
+Every package has runnable examples on [pkg.go.dev](https://pkg.go.dev/github.com/t1sk3/eulerlib/v4), and [`example_euler_test.go`](example_euler_test.go) solves Euler #1, #5, #7, #10, #14, #21, #24 and #45, checking each answer against a brute-force solution.
+
+---
+
+## Working with streams
+
+Infinite or open-ended sequences are `stream.Stream[E]` values. They are lazy, can be consumed any number of times (each consumption starts over), and stop at the largest value of their element type instead of overflowing. Bound them with `Limit` or `TakeWhile`:
+
+```go
+primes.All[int]().TakeWhile(stream.LessThan(30)).ToSlice() // [2 3 5 7 11 13 17 19 23 29]
+fibonacci.All[uint8]().FindLast().Get()                    // 233, the largest that fits
+```
+
+Key/value results are `iter.Seq2`, so you can `range` over them or collect them into a map:
+
+```go
+for p, e := range numtheory.Factors(360) { ... } // (2, 3), (3, 2), (5, 1), ascending
+maps.Collect(numtheory.Factors(360))             // map[2:3 3:2 5:1]
+```
+
+Reductions that come up often are collectors, and predicates are plain `func(E) bool` (so they also work with `slices.IndexFunc` and friends):
+
+```go
+stream.RangeClosed(1, 20).Collect(numtheory.LcmOf[int]())                   // 232792560 (Euler #5)
+stream.Sum(stream.Range(1, 1000).Filter(numtheory.DivisibleByAny(3, 5)))    // 233168    (Euler #1)
+figurate.Hexagonals[int64]().Filter(figurate.IsPentagonal[int64]).Skip(2).FindFirst() // Euler #45
+```
+
+Enumerations yield a fresh slice per element and never touch your input, so they are safe to keep or modify, and are only generated as far as you read:
+
+```go
+for p := range combinatorics.Permutations(items).All() {
+	if check(p) {
+		break // nothing past this permutation is computed
+	}
+}
+```
+
+For expensive per-element work, go-utils' parallel stages apply directly: `s.Parallel(runtime.GOMAXPROCS(0)).Map(expensive).Sequential()`. That only pays off when each element costs more than a couple of microseconds.
+
+`stream.Sum`, `stream.Max`, `stream.Distinct` and similar are package functions, because they need a constraint on the element type. Everything else (`Map`, `Filter`, `Fold`, `Collect`, ...) is a method. See the [go-utils stream docs](https://pkg.go.dev/github.com/t1sk3/go-utils/stream).
 
 ---
 
 ## Reference
 
-### Primes — `prime_numbers`
+Invalid arguments that are programmer errors (a zero modulus, a negative exponent, a base out of range) panic, and each function documents its panics. Arithmetic that builds a number larger than E wraps silently, as ordinary Go arithmetic does, unless the function says otherwise.
+
+### Primes — `primes`
 
 | Function | Description |
 |---|---|
-| `IsPrime(n)` | Returns true if n is prime |
-| `NextPrime(n)` | Returns the next prime after n |
-| `ListPrimes(n)` | Returns all primes up to n |
-| `ListPrimality(n)` | Sieve of Eratosthenes — returns `[]bool` indexed by number |
-| `ListSmallestPrimeFactors(n)` | Sieve — returns `[]E` of each number's smallest prime factor, for O(log n) factorization via `num_theory.FactorizeSPF` |
-| `FirstNPrimes(n)` | Returns the first n primes |
-| `Primes[E]()` | Infinite, lazy `stream.Stream[E]` of every prime — compose with `.Limit(n)`, `.TakeWhile(pred)`, `.Filter(pred)`, etc. without an upper bound up front |
-| `PrimeCount(s, e)` | Counts primes in the range [s, e] |
-| `SumPrimes(s, e)` | Sums all primes in the range [s, e] |
-| `PrimeGenerator(limit)` | Channel-based prime generator up to limit |
-| `NewPrimeNumberIterator(start?)` | Iterator that steps through primes one at a time |
+| `IsPrime(n)` | Deterministic Miller–Rabin: exact for every value of every integer type |
+| `NextPrime(n)` / `PrevPrime(n)` | Smallest prime > n (panics if it doesn't fit in E) / largest prime < n as `Optional` |
+| `All[E]()`, `From(n)`, `Between(lo, hi)` | Streams of primes (segmented sieve; Miller–Rabin above 2^48) |
+| `UpTo(n)`, `First[E](n)` | Primes ≤ n / the first n primes, as slices |
+| `Count(lo, hi)`, `Sum(lo, hi)` | Count / sum of primes in `[lo, hi]` |
+| `NewSieve(limit)` | Bitset sieve with `Has`, `IsPrime` (usable as a predicate), `Count`, `All`, `Stream`, `Limit` |
+| `SmallestFactorSieve(n)` | `spf[i]` = smallest prime factor of i, for `numtheory.FactorizeSPF` |
 
-### Divisors, Factorization & GCD — `num_theory`
+### Number theory — `numtheory`
 
 | Function | Description |
 |---|---|
-| `Divisors(n)` | Returns all divisors of n |
-| `CountDivisors(n)` | Returns the number of divisors of n |
-| `SumDivisors(n)` | Sum of proper divisors of n (excludes n itself) |
-| `IsAbundant(n)` | True if `SumDivisors(n) > n` |
-| `IsDeficient(n)` | True if `SumDivisors(n) < n` |
-| `IsPerfect(n)` | True if `SumDivisors(n) == n` (e.g. 6, 28, 496) |
-| `IsAmicable(n)` | True if n and `SumDivisors(n)` form an amicable pair |
-| `AmicablePairsBelow(limit)` | All amicable pairs `(a, b)` with `a < b < limit`, as `[]pair.Pair[E, E]`, each reported once |
-| `Factorize(n)` | Prime factorization as `map[E]E{prime: exponent}` |
-| `FactorizeSPF(n, spf)` | Prime factorization using a smallest-prime-factor table from `prime_numbers.ListSmallestPrimeFactors` — O(log n) instead of `Factorize`'s O(n) |
-| `FactorizeBigInt(n)` | Prime factorization of `*big.Int` as `[][2]*big.Int` |
-| `PrimeFactors(n)` | Returns the prime factors of n (with repeats) |
-| `PrimeFactorsBigInt(n)` | Prime factors of a `*big.Int` as `[][]int64{prime, exp}` |
-| `Gcd(a, b, ...)` | Greatest common divisor |
-| `Lcm(a, b, ...)` | Least common multiple |
-| `IsCoprime(a, b)` | True if `Gcd(a, b) == 1` |
-| `ExtGcd(a, b)` | Extended Euclidean algorithm — returns `(g, x, y)` with `a*x + b*y = g` |
-| `ModInverse(a, m)` | Modular multiplicative inverse of a mod m, as `optional.Optional[E]` (empty if a and m are not coprime) |
-| `CRT(remainders, moduli)` | Chinese Remainder Theorem — solves `x ≡ remainders[i] (mod moduli[i])` for all i (moduli needn't be coprime); returns `optional.Optional[pair.Pair[E, E]]` of (x, M), empty if there's no solution |
+| `Divisors(n)`, `CountDivisors(n)`, `SumDivisors(n)` | Ascending divisors / their count / sum of proper divisors |
+| `SigmaSieve(n)` | `SumDivisors(i)` for every i ≤ n in O(n log n) |
+| `IsAbundant`, `IsDeficient`, `IsPerfect`, `IsAmicable` | Divisor-sum predicates |
+| `AmicablePairs(limit)` | Stream of amicable pairs with both members < limit |
+| `Factors(n)` | `iter.Seq2[prime, exponent]`, ascending; fast for every 64-bit n |
+| `Factorize(n)`, `FactorizeSPF(n, spf)`, `FactorsSPF` | Factorization as `map[E]int` / using a smallest-factor table |
+| `PrimeFactors(n)`, `DistinctPrimeFactors(n)` | With and without repeats, ascending |
+| `FactorizeBig(n)` | `[]pair.Pair[*big.Int, int]` |
+| `Gcd(...)`, `Lcm(...)`, `IsCoprime`, `ExtGcd` | Never negative; `Gcd()` = 0, `Lcm()` = 1 |
+| `ModInverse(a, m)`, `CRT(rs, ms)` | Return `optional.Optional` |
+| `PowMod(x, y, m)`, `MulMod(a, b, m)` | Exact for any modulus (128-bit intermediate products) |
+| `Pow`, `PowBig`, `PowBigFloat`, `IsPowerOfTwo`, `IsSquare`, `Isqrt`, `FloatIsInteger` | Powers and roots; `IsSquare`/`Isqrt` are exact |
+| `Totient`, `TotientSieve`, `MobiusSieve` | φ(n), φ(0..n), μ(0..n) |
+| `Abs`, `SumOfSquares`, `SquareOfSum`, `ToRadians` | Small helpers |
+| `DivisibleBy(k)`, `DivisibleByAny(ks...)`, `CoprimeTo(k)` | Predicate builders for `Filter` |
+| `Product[E]()`, `GcdOf[E]()`, `LcmOf[E]()` | Collectors for `Collect` |
 
-### Powers & Modular Arithmetic — `num_theory`
+### Combinatorics — `combinatorics`
 
 | Function | Description |
 |---|---|
-| `Pow(b, n)` | b^n as an integer |
-| `PowBigInt(b, n)` | b^n as `*big.Int` (non-mutating, binary exponentiation) |
-| `PowBigFloat(b, n)` | b^n as `*big.Float` (non-mutating, binary exponentiation) |
-| `PowMod(x, y, p)` | x^y mod p (requires p < 2³¹) |
-| `IsPowerOfTwo(n)` | True if n is a power of two |
-| `Binomial(n, k)` | n! / (k! (n-k)!) as `*big.Int` |
+| `Factorial`, `FactorialBig`, `Binomial` (big), `Partition`, `PartitionTable` | Counting |
+| `PermutationCount(items)` | Distinct orderings of a multiset |
+| `DigitFactorialSum(n)` | Sum of the factorials of n's digits (Euler #34) |
+| `Permutations(items)` | Stream, Heap's algorithm |
+| `LexPermutations(items)` | Stream, lexicographic, skips duplicates |
+| `NthPermutation(items, k)` | k-th lexicographic permutation without generating the others (Euler #24) |
+| `Combinations(items, k)`, `Subsets(items)`, `CartesianProduct(sets...)` | Streams; no size limit |
 
-### Combinatorics — `num_theory`
-
-| Function | Description |
-|---|---|
-| `Factorial(n)` | n! as integer |
-| `FactorialBigInt(n)` | n! as `*big.Int` |
-| `FactorialDigitSum(n)` | Sum of factorials of each digit of n |
-| `Permutations(arr)` | All permutations of a slice |
-| `PermutationCount(arr)` | Number of distinct permutations |
-| `Combinations(set, n)` | All size-n combinations (pass 0 for all sizes) |
-| `Partition(n)` | Partition function p(n) — ways to write n as a sum of positive integers, order ignored — as `*big.Int` |
-
-### Number Theory — `num_theory`
+### Digits — `digits`
 
 | Function | Description |
 |---|---|
-| `Totient(n)` | Euler's totient φ(n) *(in `etc`)* |
-| `ListTotients(n)` | φ(0)…φ(n) via O(n log log n) sieve *(in `etc`)* |
-| `ListMobius(n)` | μ(0)…μ(n), the Möbius function, via O(n) linear sieve *(in `etc`)* |
-| `DigitSum(n)` | Sum of decimal digits of n |
-| `DigitSumString(s)` | Sum of decimal digits of a numeric string (arbitrary length) |
-| `DigitCount(n)` | Number of decimal digits in n |
-| `IsSquare(n)` | True if n is a perfect square |
-| `FloatIsInteger(n)` | True if float has no fractional part |
-| `IsPandigital(n)` | True if n contains digits 1–9 exactly once *(in `etc`)* |
-| `IsPandigitalInBase(n, b)` | Pandigital check in an arbitrary base *(in `etc`)* |
-| `ToRadians(n)` | Converts degrees to radians |
+| `Of(n)`, `OfBase(n, b)`, `FromDigits(ds)` | Digit slices, most significant first |
+| `Sum(n)`, `SumString(s)`, `Count(n)`, `SumOf[E]()` | Digit sum / digit sum of a string / digit count / collector |
+| `Reverse(n)` | 1230 → 321 |
+| `IsPalindrome(n)`, `IsPalindromeInBase(n, b)`, `IsPalindromeString(s)` | Palindromes (Euler #4, #36) |
+| `IsPandigital(n)`, `IsPandigitalN(n, k)` | Digits 1..9 / 1..k each exactly once |
+| `IsPandigitalInBase(n, b)`, `IsPandigitalString(s, b)` | Every digit 0..b-1 at least once |
+| `Concat(ns...)`, `ConcatString(ns...)` | `Concat(1, 23, 4)` = 1234 |
+| `ToBase(n, b)` | Bases 2..62 (`0-9A-Za-z`) |
 
-### Figurate Numbers — `figurate`
+### Sequences — `fibonacci`, `figurate`, `sequences`, `pythagoras`
 
 | Function | Description |
 |---|---|
-| `NthTriangular(n)` | nth triangular number: n(n+1)/2 |
-| `IsTriangular(n)` | True if n is triangular |
-| `NthPentagonal(n)` | nth pentagonal number: n(3n−1)/2 |
-| `IsPentagonal(n)` | True if n is pentagonal |
-| `NthHexagonal(n)` | nth hexagonal number: n(2n−1) |
-| `IsHexagonal(n)` | True if n is hexagonal |
+| `fibonacci.All[E]()`, `AllBig()`, `First`, `Nth`, `NthBig`, `IndexOfFirstWithDigits` | F(0) = 0, F(1) = 1; `NthBig` uses fast doubling |
+| `figurate.NthTriangular`, `NthSquare`, `NthPentagonal`, `NthHexagonal`, `NthPolygonal(s, n)` | n-th figurate numbers |
+| `figurate.IsTriangular`, `IsPentagonal`, `IsHexagonal` | Exact for every value of E |
+| `figurate.Triangulars`, `Squares`, `Pentagonals`, `Hexagonals`, `Polygonals(s)` | Streams starting at n = 1 |
+| `sequences.Collatz(n)`, `CollatzLength(n)`, `CollatzLengths(limit)`, `LongestCollatz(limit)` | Collatz (Euler #14) |
+| `pythagoras.Triplet{A, B, C}`, `IsTriplet`, `PrimitiveTriplets(maxC)`, `TripletsWithPerimeterAtMost(p)` | Pythagorean triplets (Euler #9, #39, #75) |
 
-### Sequences — `fibonacci` / `sequences`
+### Geometry — `geometry`
 
-| Function | Description |
-|---|---|
-| `Fibonacci(limit)` | Slice of Fibonacci numbers (channel-backed) |
-| `GenFibo(limit)` | Channel-based Fibonacci generator |
-| `FibonacciSingle(n)` | nth Fibonacci number (F(0)=0, F(1)=1) |
-| `FibonacciBig(limit)` | Fibonacci slice as `[]big.Int` |
-| `GenFiboBig(limit)` | Channel-based `big.Int` Fibonacci generator |
-| `FibonacciSingleBig(n)` | nth Fibonacci number as `*big.Int` (exact, iterative) |
-| `Collatz(n)` | Full Collatz sequence from n to 1 *(in `sequences`)* |
-| `CollatzLength(n)` | Number of steps in the Collatz sequence *(in `sequences`)* |
-| `LongestCollatz(limit)` | Starting number in `[1, limit)` with the longest Collatz chain, paired with its length, as `pair.Pair[E, int]` *(in `sequences`)* |
-
-### Geometry — `pythagoras`
+Built on [go-utils' `vector`](https://pkg.go.dev/github.com/t1sk3/go-utils/types/vector) (`Vec2`, `Vec3`, `VecN`), which provides all vector arithmetic.
 
 | Function | Description |
 |---|---|
-| `IsTriplet(a, b, c)` | True if (a, b, c) is a Pythagorean triplet |
+| `AreColinear(p1, p2, p3)` | Three `vector.Vec2` points on one line |
+| `Quadrant(p)`, `SameQuadrant(p1, p2)` | Quadrant 1–4; axes belong to the quadrant they start, the origin is IV |
+| `Hex[E]{Q, R}`, `HexOf(q, r)` | Axial hex coordinate: `S`, `Add`, `Sub`, `Scale`, `Distance`, `Neighbors`, `ToVec2`, `String`; comparable, JSON `{"q", "r"}` |
+| `HexAreColinear`, `HexSameQuadrant`, `HexRing(center, radius)` | Hex-grid helpers |
+| `CartesianToHex`, `HexToCartesian`, `RoundHex` | Conversion for unit pointy-top hexagons |
 
-### Vectors — `vector`
-
-`Vector[E]` is an N-dimensional vector backed by a slice of elements. `Vector2[E]` and `Vector3[E]` embed `Vector[E]` to add named `X`/`Y`/`Z` accessors and dimension-specific operations (`Cross`, `Perp`); both require `SignedNumber`.
-
-| Function | Description |
-|---|---|
-| `NewVector(elements)` | Creates a vector from a slice of elements (copies the slice) |
-| `v.Len()` | Number of elements in the vector |
-| `v.At(i)` | Element at index i |
-| `v.Set(i, e)` | Sets the element at index i |
-| `v.Elements()` | Returns a copy of the underlying elements as a slice |
-| `v.Swap(i, j)` | Swaps the elements at indices i and j |
-| `v.Add(o)` | Element-wise addition, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
-| `v.Sub(o)` | Element-wise subtraction, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
-| `v.Mul(o)` | Element-wise multiplication, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
-| `v.Div(o)` | Element-wise division, returns a new vector (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
-| `v.Dot(o)` | Dot product of two vectors (`o` is a `Vector` value; pass `*other` if you have `*Vector`) |
-
-#### Vector2 / Vector3
+### Progress bars — `progress`
 
 | Function | Description |
 |---|---|
-| `NewVector2(x, y)` | Creates a 2D vector |
-| `NewVector3(x, y, z)` | Creates a 3D vector |
-| `AsVector2(v)` | Adopts a length-2 `Vector` as a `Vector2` (shares storage, panics if length ≠ 2) |
-| `AsVector3(v)` | Adopts a length-3 `Vector` as a `Vector3` (shares storage, panics if length ≠ 3) |
-| `v.X()`, `v.Y()` | Component accessors (`Vector2` and `Vector3`) |
-| `v.Z()` | Component accessor (`Vector3` only) |
-| `v.SetX(x)`, `v.SetY(y)` | Component setters (`Vector2` and `Vector3`) |
-| `v3.SetZ(z)` | Component setter (`Vector3` only) |
-| `v2.Cross(o)` | Perp-dot product (z-component of the 3D cross product) — `Vector2` only |
-| `v2.Perp()` | Returns the perpendicular vector `(-y, x)` — `Vector2` only |
-| `v3.Cross(o)` | 3D cross product, returns a new `Vector3` |
-| `v.Add(o)`, `v.Sub(o)`, `v.Mul(o)`, `v.Div(o)` | Element-wise arithmetic (`o` is a value; pass `*other` if you have a pointer), returns the same dimension type (`Vector2` and `Vector3`) |
+| `Slice(s, opts...)` | `iter.Seq2[int, T]` over a slice |
+| `N(n, opts...)` | `iter.Seq[int]` over `[0, n)` |
+| `Spinner(opts...)` | Unbounded count with a spinner |
+| `Seq(seq, total, opts...)`, `Stream(s, total, opts...)` | Wrap any `iter.Seq` or stream; `total < 0` draws a spinner |
+| `WithWidth`, `WithWriter`, `WithLabel` | Options; any `progressbar.Option` also works |
 
-#### Coordinate operations
+The bar is created when iteration starts, so a sequence can be ranged over more than once.
 
-`HexCoordinate[E]` is a point in axial hexagonal coordinates (q, r); it embeds `Vector2[E]` and adds `Q()`/`R()`/`S()` accessors.
-
-| Function | Description |
-|---|---|
-| `AreColinear(p1, p2, p3)` | True if `p1`, `p2`, and `p3` all lie on a common line |
-| `NewHexCoordinate(q, r)` | Creates an axial hex coordinate |
-| `h.Q()`, `h.R()` | Axial coordinate accessors (aliases for the inherited `X()`/`Y()`) |
-| `h.S()` | Third cube coordinate, `s = -q-r` |
-| `HexAreColinear(p1, p2, p3)` | True if `p1`, `p2`, and `p3` all lie on a common line on the hex grid |
-| `Quadrant(p)` | Standard 1–4 quadrant number of `p`, sweeping counterclockwise from the positive x-axis; each quadrant includes its lower (starting) boundary and excludes its upper one, so axis points belong to the quadrant they start (origin is quadrant IV by convention) |
-| `SameQuadrant(p1, p2)` | True if `p1` and `p2` lie in the same of the four quadrants returned by `Quadrant` |
-| `HexSameQuadrant(p1, p2)` | True if `p1` and `p2` lie in the same quadrant of the axial (q, r) coordinate system |
-| `CartesianToHex(p)` | Converts a cartesian point to fractional axial hex coordinates (unit-size, pointy-top hexagons; requires `Float`) |
-| `HexToCartesian(h)` | Converts axial hex coordinates to a cartesian point (inverse of `CartesianToHex`; requires `Float`) |
-| `RoundHex(h)` | Rounds fractional axial hex coordinates to the nearest hex cell (requires `Float`) |
-
-### Slice Utilities — `etc`
-
-| Function | Description |
-|---|---|
-| `Sum(slice)` | Sum of all elements |
-| `Product(slice)` | Product of all elements |
-| `Min(a, b, ...)` | Minimum value |
-| `Max(a, b, ...)` | Maximum value |
-| `Abs(n)` | Absolute value of a signed integer |
-| `SumOfSquares(n)` | 1² + 2² + … + n² |
-| `SquareOfSum(n)` | (1 + 2 + … + n)² |
-| `Range(start, stop)` | Slice from start to stop (exclusive), stepping by 1 |
-| `RangeStep(start, stop, step)` | Range with custom step |
-| `Filter(slice, fn)` | Keep elements matching predicate |
-| `Map(slice, fn)` | Transform every element |
-| `Reduce(slice, fn)` | Fold left, starting from slice[0] *(in `num_theory`)* |
-| `ReduceWithInit(init, slice, fn)` | Fold left with an explicit initial value *(in `num_theory`)* |
-| `Sort(slice, fn)` | Sort in-place using a less function |
-| `Unique(slice)` | Remove duplicates (requires `comparable`) |
-| `UniqueCount(slice)` | Map of element → count |
-| `RemoveDuplicates(slice)` | Remove duplicates (works on `Comparable` constraint) |
-| `RemoveDuplicatesFunc(slice, fn)` | Remove duplicates with custom equality function |
-| `MostFrequent(slice)` | Most common element and its count, as `optional.Optional[pair.Pair[E, int]]` (empty for an empty slice) |
-| `FirstMatching(start, step, pred)` | First value in `start, start+step, start+2*step, ...` satisfying `pred`, as `optional.Optional[E]` — the "find the smallest n such that..." search, without a hand-rolled loop |
-| `SliceContains(slice, v)` | True if slice contains v |
-| `SliceContainsAny(slice, v, fn)` | True if any element matches v via fn |
-| `CountOccurrenceInSlice(slice, v)` | Count occurrences of v |
-| `RemoveFromSlice(slice, i)` | Remove element at index i |
-| `GenerateSlice(n, value)` | Create a slice of length n filled with value |
-| `JoinSlice(slice)` | Concatenate integer slice into a string |
-
-### String Utilities — `etc`
-
-| Function | Description |
-|---|---|
-| `IsPalindrome(s)` | True if s reads the same forwards and backwards |
-| `ReverseString(s)` | Reverses a string (Unicode-safe) |
-| `MakeIntSlice(n)` | Digits of n as a `[]E` slice |
-| `DecimalToBase(n, b)` | Converts n to base b (2–62) as a string |
-
-### File I/O — `etc`
-
-| Function | Description |
-|---|---|
-| `CreateFile(name)` | Create a file |
-| `CreateFileWithContent(name, content)` | Create a file and write content to it |
-| `ReadFile(name)` | Read a file's content as a string |
-| `FileExists(name)` | True if the file exists |
-
-### Progress Bar — `progress`
-
-Requires the `range` keyword (Go 1.23 range-over-func / Go 1.22 range-over-int). Rendering is delegated to [schollz/progressbar](https://github.com/schollz/progressbar).
-
-| Function | Description |
-|---|---|
-| `ProgressBar(slice, opts...)` | Ranges over a slice, drawing a live progress bar as iteration proceeds |
-| `ProgressBarN(n, opts...)` | Ranges over `[0, n)`, drawing a live progress bar as iteration proceeds |
-| `Spinner(opts...)` | Ranges over `[0, 1, 2, ...)` with no upper bound, drawing a live spinner (no % or ETA) — for open-ended brute-force search where the total is unknown; break the loop when done |
-| `WithWidth(n)` | Option: number of characters in the bar itself (default 10) |
-| `WithWriter(w)` | Option: where the bar is rendered (default `os.Stderr`) |
-| `WithLabel(s)` | Option: description printed before the bar |
-
-`Option` is an alias for `progressbar.Option`, so any option from the underlying library (colors, spinner style, byte mode, ...) can be passed straight through too.
+```go
+total := primes.Count(2, 2_000_000)
+sum := stream.Sum(progress.Stream(primes.Between(2, 2_000_000), total))
+```
 
 ### Timing — `stopwatch`
 
-| Function | Description |
-|---|---|
-| `Start(label, opts...)` | Starts a timer, returns a `Stop` func — call (or `defer`) it to print `"<label>: <elapsed>"` and get the elapsed `time.Duration` |
-| `Time(label, fn, opts...)` | Runs fn, printing and returning the elapsed time the same way `Start`'s returned func does |
-| `WithWriter(w)` | Option: where the elapsed-time line is printed (default `os.Stderr`) |
+`Start(label, opts...)` returns a stop func that prints `"<label>: <elapsed>"` and returns the duration; `Time(label, fn, opts...)` times `fn`. `WithWriter(w)` redirects the output.
 
 ```go
 defer stopwatch.Start("part 2")()
@@ -289,10 +197,8 @@ defer stopwatch.Start("part 2")()
 
 | Function | Description |
 |---|---|
-| `Memoize(fn)` | Wraps a single-argument function so repeat calls with the same argument are computed once |
-| `Memoize2(fn)` | `Memoize` for a two-argument function — handy for `(position, state)`-style recurrences |
-
-Not safe for concurrent use. For a recursive function, declare the variable first so the memoized wrapper can call itself:
+| `Memoize(fn)`, `Memoize2(fn)` | Cache a one- or two-argument function (not goroutine-safe) |
+| `MemoizeConcurrent(fn)` | Goroutine-safe; `fn` runs without a lock held, so recursion is fine |
 
 ```go
 var fib func(n int) int64
@@ -308,148 +214,131 @@ fib = memo.Memoize(func(n int) int64 {
 
 | Function | Description |
 |---|---|
-| `Scatter2D(points, path, opts...)` | Renders `[]Point2D[E]{X, Y, Label}` as an interactive HTML scatter plot, returns the HTML and (if `path != ""`) writes it to file |
-| `Scatter3D(points, path, opts...)` | Renders `[]Point3D[E]{X, Y, Z, Label}` as an interactive HTML 3D scatter plot (orbit/zoom/pan), same return/write behavior |
-| `SaveCSV2D(points, path)` | Writes `[]Point2D[E]` to `path` as CSV (`x,y,label`) for batch-processing elsewhere |
-| `SaveCSV3D(points, path)` | Writes `[]Point3D[E]` to `path` as CSV (`x,y,z,label`) for batch-processing elsewhere |
+| `Scatter2D(points, path, opts...)`, `Scatter3D(...)` | Interactive HTML scatter plots (ECharts via [go-echarts](https://github.com/go-echarts/go-echarts)); returns the HTML and writes it to `path` if non-empty |
+| `SaveCSV2D`, `SaveCSV3D` | CSV export |
+| `PointFromVec2`, `PointFromVec3`, `PointFromPair`, `Points2D(seq)`, `Points3D(seq)` | Build points from go-utils vectors, pairs and streams |
 
-Charts are built with [go-echarts](https://github.com/go-echarts/go-echarts) (ECharts + echarts-gl for 3D) and rendered as a single self-contained HTML file — open it in a browser to hover points for a tooltip, scroll/drag to zoom and pan, and, for `Scatter3D`, drag to orbit. A point's `Label` is optional; leave it empty to plot a bare point.
+Options: `WithTitle`, `WithXLabel`, `WithYLabel`, `WithZLabel`, `WithSize`, `WithPointSize`, `WithColor`, `WithTheme`.
 
 ```go
-pts := []plot.Point2D[int]{
-    {X: 1, Y: 1, Label: "A"},
-    {X: 2, Y: 4},
-    {X: 3, Y: 9, Label: "C"},
-}
-plot.Scatter2D(pts, "points.html", plot.WithTitle("y = x^2"), plot.WithXLabel("x"), plot.WithYLabel("y"))
+pts := plot.Points2D(stream.RangeClosed(1, 10).
+	Map(func(n int) vector.Vec2[int] { return vector.Of2(n, n*n) }).All())
+plot.Scatter2D(pts, "squares.html", plot.WithTitle("y = x^2"))
 ```
-
-Options: `WithTitle`, `WithXLabel`, `WithYLabel`, `WithZLabel` (3D only), `WithSize(width, height)`, `WithPointSize(size)`, `WithColor(color)`, `WithTheme(theme)` (any [built-in ECharts theme](https://echarts.apache.org/en/theme-builder.html), e.g. `"dark"`, `"vintage"`, `"macarons"`).
-
-### Type Utilities — `utils`
-
-| Function | Description |
-|---|---|
-| `SameType[A, B]()` | True if A and B are the same type or type family |
-| `IsSignedInteger(t)` | Reflection-based type check |
-| `IsUnsignedInteger(t)` | Reflection-based type check |
-| `IsInteger(t)` | Reflection-based type check |
-| `IsFloat(t)` | Reflection-based type check |
-| `IsRealNumber(t)` | Reflection-based type check |
-| `IsComplex(t)` | Reflection-based type check |
-| `IsNumber(t)` | Reflection-based type check |
-| `IsComparable(t)` | Reflection-based type check |
 
 ---
 
-## Type Constraints and Upgrading from v2
+## Upgrading from v3
 
-As of v3, eulerlib's generic functions are constrained using [go-utils](https://github.com/t1sk3/go-utils)'s `constraints` package instead of defining its own — `utils.Integer` and friends are gone from eulerlib itself:
+Change imports from `github.com/t1sk3/eulerlib/v3/...` to `github.com/t1sk3/eulerlib/v4/...`, then use the tables below. If your `go.mod` still requires `github.com/t1sk3/go-utils/types`, run `go get github.com/t1sk3/go-utils/types@none`.
 
-```go
-constraints.Signed       // ~int | ~int8 | ~int16 | ~int32 | ~int64
-constraints.Unsigned     // ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr
-constraints.Integer      // Signed | Unsigned
-constraints.Float        // ~float32 | ~float64
-constraints.Number       // Integer | Float
-constraints.Complex      // ~complex64 | ~complex128
-constraints.Numeric      // Number | Complex
-constraints.Basic        // Numeric | ~string | ~bool
-constraints.SignedNumber // Signed | Float | Complex
-```
-
-**Upgrading from v2:** every exported function that was constrained by one of eulerlib's own types now takes the equivalent `constraints` type below. Calling the functions with concrete types (`int`, `int64`, `float64`, ...) is unaffected; only code that referenced eulerlib's constraint types directly (e.g. a custom generic function declared as `func f[E utils.Integer](...)`) needs updating.
-
-| v2 (`utils`) | v3 (`go-utils/types/constraints`) |
+| v3 package | v4 |
 |---|---|
-| `SignedInteger` | `Signed` |
-| `UnsignedInteger` | `Unsigned` |
-| `Integer` | `Integer` |
-| `Float` | `Float` |
-| `RealNumber` | `Number` |
-| `Complex` | `Complex` |
-| `Number` | `Numeric` |
-| `Comparable` | `Basic` |
-| `SignedNumber` | `SignedNumber` |
+| `prime_numbers` | `primes` |
+| `num_theory` | `numtheory`, `combinatorics`, `digits` |
+| `etc` | `digits`, `numtheory`, go-utils `stream`, the standard library (below) |
+| `vector` | go-utils `types/vector` + `geometry` |
+| `utils` | removed: use type parameters with `constraints.*` |
 
-Also in v3: `num_theory.ModInverse` and `num_theory.CRT` return [`optional.Optional`](https://github.com/t1sk3/go-utils) instead of a trailing `bool` — see their reference entries above. See [CHANGELOG.md](CHANGELOG.md) for the full list of changes.
+### `etc`
 
----
+| v3 | v4 |
+|---|---|
+| `Min(a, b, …)`, `Max(…)` | builtin `min`, `max`; `slices.Min`/`slices.Max` for slices |
+| `Sum(s)` | `stream.Sum(stream.FromSlice(s))`; for complex numbers `stream.FromSlice(s).Fold(0, func(a, v E) E { return a + v })` |
+| `Product(s)` | `stream.FromSlice(s).Collect(numtheory.Product[E]())` |
+| `Filter(s, f)`, `Map(s, f)` | `stream.FromSlice(s).Filter(f).ToSlice()`, `stream.FromSlice(s).Map(f).ToSlice()` |
+| `Sort(s, less)` | `slices.SortFunc(s, cmp)` (the comparator returns an `int`) |
+| `Unique(s)`, `RemoveDuplicates(s)` | `stream.Distinct(stream.FromSlice(s)).ToSlice()` (keeps first occurrences) |
+| `RemoveDuplicatesFunc`, `RemoveDuplicates2`, `RemoveDuplicateSlices` | `stream.FromSlice(s).DistinctBy(key).ToSlice()` |
+| `UniqueCount(s)` | `stream.FromSlice(s).CountBy(stream.Identity[E])` |
+| `MostFrequent(s)` | `counts := stream.FromSlice(s).CountBy(stream.Identity[E])`, then `stream.FromMap(counts).Max(func(a, b pair.Pair[E, int]) int { return a.Second - b.Second })` (ties are resolved arbitrarily) |
+| `SliceContains(s, v)`, `SliceContainsAny(s, v, f)` | `slices.Contains(s, v)`, `slices.ContainsFunc(s, func(x E) bool { return f(x, v) })` |
+| `CountOccurrenceInSlice(s, v)` | `stream.FromSlice(s).Filter(stream.Equal(v)).Count()` |
+| `RemoveFromSlice(s, i)` | `slices.Delete(s, i, i+1)` |
+| `GenerateSlice(n, v)` | `slices.Repeat([]E{v}, n)` |
+| `Range(a, b)`, `RangeStep(a, b, step)` | `stream.Range(a, b).ToSlice()`; `stream.IterateWhile(a, func(x E) bool { return x < b }, func(x E) E { return x + step }).ToSlice()` |
+| `MakeSliceOf(n, f)` | `stream.Range(0, n).Map(f).ToSlice()` |
+| `FirstMatching(start, step, p)` | `stream.Iterate(start, func(x E) E { return x + step }).Filter(p).FindFirst()` |
+| `JoinSliceString(s)`, `JoinSlice(s)` | `strings.Join(s, "")`, `digits.ConcatString(s...)` (or `digits.Concat` for a number) |
+| `ReverseString(s)` | `r := []rune(s); slices.Reverse(r); string(r)`; for numbers `digits.Reverse(n)` |
+| `IsPalindrome(s)` | `digits.IsPalindromeString(s)`; numbers: `digits.IsPalindrome(n)`, `digits.IsPalindromeInBase(n, b)` |
+| `MakeIntSlice(n)` | `digits.Of(n)` |
+| `IsPandigital(n)` | `digits.IsPandigital(n)`. **Stricter:** digits 1–9 exactly once (v3 only checked that each was present) |
+| `IsPandigitalInBase(n, b)`, `IsPandigitalInBaseString(s, b)` | `digits.IsPandigitalInBase(n, b)`, `digits.IsPandigitalString(s, b)` |
+| `DecimalToBase(n, b)` | `digits.ToBase(n, b)`; panics on a base outside 2..62 instead of returning `""` |
+| `Totient`, `Phi`, `ListTotients`, `ListMobius` | `numtheory.Totient`, `numtheory.TotientSieve`, `numtheory.MobiusSieve` (`Phi` removed) |
+| `Abs`, `SumOfSquares`, `SquareOfSum` | `numtheory.Abs`, `numtheory.SumOfSquares`, `numtheory.SquareOfSum` |
+| `CreateFile`, `CreateFileWithContent`, `ReadFile`, `FileExists` | `os.Create`, `os.WriteFile`, `os.ReadFile`, `os.Stat` |
 
-## Examples
+### `num_theory`
 
-```go
-import (
-	"fmt"
+| v3 | v4 |
+|---|---|
+| `Reduce(s, f)`, `ReduceWithInit(init, s, f)` | `stream.FromSlice(s).Reduce(f)`, `stream.FromSlice(s).Fold(init, f)` |
+| `MaxInSlice`, `Lcd` | `slices.Max`, `numtheory.Lcm` |
+| `Factorize(n) map[E]E` | `numtheory.Factorize(n) map[E]int`, or `numtheory.Factors(n)` (`iter.Seq2`) |
+| `FactorizeSPF(n, spf)` | `numtheory.FactorizeSPF(n, spf) map[E]int`, or `numtheory.FactorsSPF` |
+| `FactorizeBigInt`, `PrimeFactorsBigInt` | `numtheory.FactorizeBig(n) []pair.Pair[*big.Int, int]` |
+| `PowMod(x, y, p) int64` | `numtheory.PowMod(x, y, m) E`, exact for any modulus |
+| `PowBigInt` | `numtheory.PowBig` |
+| `Pow(b, n E)` | `numtheory.Pow(b E, n int)` |
+| `Permutations(arr) [][]E` | `combinatorics.Permutations(arr)` (stream, doesn't modify `arr`) |
+| `Combinations(set, n)` | `combinatorics.Combinations(set, k)`; all sizes: `combinatorics.Subsets(set)` |
+| `PermutationCount`, `Factorial`, `Binomial`, `Partition` | `combinatorics.*`, same names |
+| `FactorialBigInt` | `combinatorics.FactorialBig` |
+| `FactorialDigitSum` | `combinatorics.DigitFactorialSum` |
+| `DigitSum`, `DigitSumString`, `DigitCount` | `digits.Sum`, `digits.SumString`, `digits.Count` (returns `int`) |
+| `AmicablePairsBelow(limit) []Pair` | `numtheory.AmicablePairs(limit)` (stream; both members now < limit) |
+| `Divisors`, `CountDivisors`, `SumDivisors`, `Gcd`, `Lcm`, … | `numtheory.*`. `Divisors` is now sorted, `CountDivisors` returns `int`, `Gcd()` returns 0 instead of panicking |
 
-	"github.com/t1sk3/eulerlib/v3/etc"
-	"github.com/t1sk3/eulerlib/v3/fibonacci"
-	"github.com/t1sk3/eulerlib/v3/figurate"
-	"github.com/t1sk3/eulerlib/v3/num_theory"
-	"github.com/t1sk3/eulerlib/v3/prime_numbers"
-	"github.com/t1sk3/eulerlib/v3/progress"
-	"github.com/t1sk3/eulerlib/v3/sequences"
-	"github.com/t1sk3/eulerlib/v3/vector"
-)
+### `prime_numbers`
 
-// Check if 28 is a perfect number
-num_theory.IsPerfect(28) // true — SumDivisors(28) = 1+2+4+7+14 = 28
+| v3 | v4 |
+|---|---|
+| `IsPrime`, `NextPrime` | `primes.IsPrime`, `primes.NextPrime` |
+| `ListPrimality(n)` | `primes.NewSieve(n)` (`Has`, `All`, `Stream`, `Count`) |
+| `ListPrimes(n)` | `primes.UpTo(n)` |
+| `ListSmallestPrimeFactors(n)` | `primes.SmallestFactorSieve(n)` |
+| `FirstNPrimes(n)` | `primes.First[E](n)` |
+| `Primes()` | `primes.All[E]()` |
+| `PrimeCount(s, e)`, `SumPrimes(s, e)` | `primes.Count(s, e)`, `primes.Sum(s, e)` |
+| `PrimeGenerator(limit)` | `primes.All[E]().TakeWhile(stream.AtMost(limit)).All()` |
+| `PrimeNumberIterator`, `NewPrimeNumberIterator` | `primes.From(n)`, or `iter.Pull(primes.All[E]().All())` if you need a `next()` function |
 
-// Find the 10,001st prime
-iter := prime_numbers.NewPrimeNumberIterator[int]()
-for i := 0; i < 10001; i++ {
-    iter.Next()
-}
-fmt.Println(iter.Current()) // 104743
+### `fibonacci`, `figurate`, `sequences`, `pythagoras`
 
-// Sum of all primes below 2,000,000 (Euler #10)
-fmt.Println(prime_numbers.SumPrimes(0, 2_000_000)) // 142913828922
+| v3 | v4 |
+|---|---|
+| `GenFibo`, `GenFiboBig` (channels) | `fibonacci.All[E]()`, `fibonacci.AllBig()` |
+| `Fibonacci(limit)`, `FibonacciBig(limit)` | `fibonacci.First[E](n)`; note v4 starts at F(0) = 0 |
+| `FibonacciSingle(n) int64`, `FibonacciSingleBig(n)` | `fibonacci.Nth[E](n) E`, `fibonacci.NthBig(n)` |
+| `figurate.IsPentagonal(0)`, `IsHexagonal(0)` | now `true`, like `IsTriangular(0)` |
+| `sequences.Collatz(n) []E` | `sequences.Collatz(n).ToSlice()` (stream; panics instead of overflowing E) |
+| `pythagoras.IsTriplet` | unchanged; new `Triplet` type and triplet streams |
 
-// Factorize a number
-num_theory.Factorize(int64(360)) // map[2:3 3:2 5:1]  (2³ × 3² × 5)
+### `vector`
 
-// Collatz sequence length for 27
-sequences.CollatzLength(27) // 112
+| v3 | v4 |
+|---|---|
+| `vector.NewVector([]E)` / `*Vector[E]` | `vector.Of(xs...)` → `vector.VecN[E]` (a slice: `v[i]`, `len(v)`, `range v`) |
+| `.Len()`, `.At(i)`, `.Set(i, e)`, `.Elements()`, `.Swap(i, j)` | `len(v)`, `v[i]`, `v[i] = e`, `v.Clone()`, `v[i], v[j] = v[j], v[i]` |
+| `NewVector2(x, y)`, `NewVector3(x, y, z)` | `vector.Of2(x, y)`, `vector.Of3(x, y, z)` (values, with `X`, `Y`, `Z` fields) |
+| `.X()`, `.SetX(x)` | `.X`, `v.X = x` |
+| `AsVector2(v)`, `AsVector3(v)` | `v.ToVec2()`, `v.ToVec3()` |
+| `AreColinear`, `Quadrant`, `SameQuadrant` | `geometry.*`, taking `vector.Vec2` values |
+| `HexCoordinate`, `NewHexCoordinate(q, r)` | `geometry.Hex[E]{Q, R}`, `geometry.HexOf(q, r)` |
+| `HexAreColinear`, `HexSameQuadrant`, `CartesianToHex`, `HexToCartesian`, `RoundHex` | `geometry.*`, same names |
 
-// 100th Fibonacci number (exact)
-fibonacci.FibonacciSingleBig(100).String() // "354224848179261915075"
+go-utils vectors use `constraints.Number`, so complex-valued vectors are no longer supported.
 
-// Euler's totient sieve up to 100
-phi := etc.ListTotients(100) // phi[i] = φ(i)
+### `progress`
 
-// Check figurate numbers
-figurate.IsTriangular(55)  // true  (T(10) = 55)
-figurate.IsPentagonal(51)  // true  (P(6)  = 51)
-figurate.IsHexagonal(45)   // true  (H(5)  = 45)
-
-// N-dimensional vector arithmetic
-a := vector.NewVector([]int{1, 2, 3})
-b := vector.NewVector([]int{4, 5, 6})
-a.Dot(*b) // 32  (1*4 + 2*5 + 3*6)
-
-// 2D cross (perp-dot) product
-p := vector.NewVector2(1, 2)
-q := vector.NewVector2(3, 4)
-p.Cross(*q) // -2  (1*4 - 2*3)
-
-// 3D cross product
-i := vector.NewVector3(1, 0, 0)
-j := vector.NewVector3(0, 1, 0)
-i.Cross(*j) // Vector3{0, 0, 1}
-
-// Live progress bar while ranging over a slice
-primes := prime_numbers.ListPrimes(1000)
-for i, p := range progress.ProgressBar(primes) {
-    _ = i
-    _ = p // do something with each prime
-}
-// 100% |████████████████████████████████████████| (168/168, 9000 it/s)
-
-// ...or over a plain count
-for i := range progress.ProgressBarN(1_000_000, progress.WithLabel("euler #10")) {
-    _ = i
-}
-```
+| v3 | v4 |
+|---|---|
+| `ProgressBar(slice)` | `progress.Slice(slice)` |
+| `ProgressBarN(n)` | `progress.N(n)` |
+| `Spinner()` | unchanged |
 
 ---
 
