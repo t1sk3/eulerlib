@@ -63,8 +63,8 @@ func newBar(total int, opts ...Option) *progressbar.ProgressBar {
 // Breaking out of the loop early still finalizes the bar at whatever count
 // was reached.
 func ProgressBar[T any](s []T, opts ...Option) iter.Seq2[int, T] {
-	bar := newBar(len(s), opts...)
 	return func(yield func(int, T) bool) {
+		bar := newBar(len(s), opts...)
 		defer bar.Finish()
 		for i, e := range s {
 			bar.Add(1)
@@ -82,8 +82,8 @@ func ProgressBar[T any](s []T, opts ...Option) iter.Seq2[int, T] {
 //	    ...
 //	}
 func ProgressBarN(n int, opts ...Option) iter.Seq[int] {
-	bar := newBar(n, opts...)
 	return func(yield func(int) bool) {
+		bar := newBar(n, opts...)
 		defer bar.Finish()
 		for i := range n {
 			bar.Add(1)
@@ -106,8 +106,8 @@ func ProgressBarN(n int, opts ...Option) iter.Seq[int] {
 //	    }
 //	}
 func Spinner(opts ...Option) iter.Seq[int] {
-	bar := newBar(-1, opts...)
 	return func(yield func(int) bool) {
+		bar := newBar(-1, opts...)
 		defer bar.Finish()
 		for i := 0; ; i++ {
 			bar.Add(1)

@@ -1,9 +1,12 @@
 package num_theory
 
 import (
+	"maps"
+	"math"
 	"math/big"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/t1sk3/eulerlib/v3/etc"
 	"github.com/t1sk3/eulerlib/v3/prime_numbers"
@@ -579,4 +582,47 @@ func TestFactorizeSPFPanicsOnSmallOrInvalidSPF(t *testing.T) {
 		}()
 		FactorizeSPF(int64(4), []int64{0, 0, 2, 3, 0})
 	})
+}
+
+// factorizeReference is the v3.0.0 implementation (trial division up to n),
+// kept as an oracle for the faster Factorize.
+func factorizeReference(n int) map[int]int {
+	factors := make(map[int]int)
+	for i := 2; i <= n; i++ {
+		for n%i == 0 {
+			factors[i]++
+			n /= i
+		}
+	}
+	return factors
+}
+
+func TestFactorizeMatchesReference(t *testing.T) {
+	for n := 0; n <= 5000; n++ {
+		if got, want := Factorize(n), factorizeReference(n); !maps.Equal(got, want) {
+			t.Fatalf("Factorize(%d) = %v, want %v", n, got, want)
+		}
+	}
+}
+
+func TestFactorizeLargePrimeIsFast(t *testing.T) {
+	done := make(chan map[int64]int64, 1)
+	go func() { done <- Factorize(int64(1_000_000_007)) }()
+	select {
+	case got := <-done:
+		if want := map[int64]int64{1_000_000_007: 1}; !maps.Equal(got, want) {
+			t.Fatalf("Factorize(1000000007) = %v, want %v", got, want)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Factorize(1000000007) took longer than 2s")
+	}
+}
+
+func TestFactorizeNearMaxInt64(t *testing.T) {
+	// 2^63 - 1 = 7^2 * 73 * 127 * 337 * 92737 * 649657
+	got := Factorize(int64(math.MaxInt64))
+	want := map[int64]int64{7: 2, 73: 1, 127: 1, 337: 1, 92737: 1, 649657: 1}
+	if !maps.Equal(got, want) {
+		t.Fatalf("Factorize(MaxInt64) = %v, want %v", got, want)
+	}
 }

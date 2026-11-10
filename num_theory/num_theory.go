@@ -327,14 +327,19 @@ func CRT[E constraints.Signed](remainders, moduli []E) optional.Optional[pair.Pa
 }
 
 // Factorize returns the prime factorization of n as a map of prime → exponent.
-// Returns an empty map for n <= 1.
+// Returns an empty map for n <= 1. Runs in O(sqrt(n)) trial divisions.
 func Factorize[E constraints.Integer](n E) map[E]E {
 	factors := make(map[E]E)
-	for i := E(2); i <= n; i++ {
+	// i <= n/i rather than i*i <= n, so the bound can't overflow near the
+	// type's maximum.
+	for i := E(2); i <= n/i; i++ {
 		for n%i == 0 {
 			factors[i]++
 			n /= i
 		}
+	}
+	if n > 1 {
+		factors[n]++
 	}
 	return factors
 }
