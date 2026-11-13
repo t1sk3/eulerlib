@@ -170,9 +170,31 @@ func Abs[E constraints.Signed](n E) E {
 	return abs(n)
 }
 
-// SumOfSquares returns 1² + 2² + ... + n² = n(n+1)(2n+1)/6.
+// SumOfSquares returns 1² + 2² + ... + n² = n(n+1)(2n+1)/6, and 0 for
+// n <= 0. The result is exact whenever it fits in E: the divisions happen
+// before the multiplications, so no intermediate value is larger than the
+// result.
 func SumOfSquares[E constraints.Integer](n E) E {
-	return n * (n + 1) * (2*n + 1) / 6
+	if n <= 0 {
+		return 0
+	}
+	// Exactly one of n and n+1 is even, and exactly one of n, n+1 and 2n+1
+	// is a multiple of 3: divide those factors before multiplying.
+	a, b, c := n, n+1, 2*n+1
+	if a%2 == 0 {
+		a /= 2
+	} else {
+		b /= 2
+	}
+	switch n % 3 {
+	case 0:
+		a /= 3
+	case 2:
+		b /= 3
+	default: // n = 3k+1, so 2n+1 = 3(2k+1); computed without forming 2n+1
+		c = 2*(n/3) + 1
+	}
+	return a * b * c
 }
 
 // SquareOfSum returns (1 + 2 + ... + n)² = (n(n+1)/2)².

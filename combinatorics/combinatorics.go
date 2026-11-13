@@ -11,6 +11,7 @@ package combinatorics
 
 import (
 	"cmp"
+	"math"
 	"math/big"
 	"slices"
 
@@ -49,7 +50,21 @@ func Binomial[E constraints.Integer](n, k E) *big.Int {
 	if k < 0 || k > n {
 		return new(big.Int)
 	}
-	return new(big.Int).Binomial(int64(n), int64(k))
+	if k > n-k {
+		k = n - k // C(n, k) = C(n, n-k), and n-k is the smaller one
+	}
+	if uint64(n) <= math.MaxInt64 {
+		return new(big.Int).Binomial(int64(n), int64(k))
+	}
+	// n is a uint64 beyond big.Int.Binomial's int64 arguments:
+	// C(n, k) = Π (n-k+i)/i for i = 1..k, exact at every step.
+	r := big.NewInt(1)
+	f := new(big.Int)
+	for i := uint64(1); i <= uint64(k); i++ {
+		r.Mul(r, f.SetUint64(uint64(n)-uint64(k)+i))
+		r.Quo(r, f.SetUint64(i))
+	}
+	return r
 }
 
 // Partition returns p(n), the number of ways to write n as a sum of

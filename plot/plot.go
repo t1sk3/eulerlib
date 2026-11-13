@@ -1,14 +1,22 @@
 // Package plot renders small sets of 2D and 3D data points as interactive,
 // browser-based scatter plots. Charts are built with Apache ECharts (via
 // go-echarts/go-echarts, and its echarts-gl extension for 3D) and written
-// out as a single self-contained HTML file — open it in a browser to hover
-// points for a tooltip, scroll/drag to zoom and pan, and, for Scatter3D,
-// drag to orbit the 3D view.
+// out as a single HTML file — open it in a browser to hover points for a
+// tooltip, scroll/drag to zoom and pan, and, for Scatter3D, drag to orbit
+// the 3D view.
+//
+// The file holds the data and chart options, but loads the ECharts
+// scripts from go-echarts' asset host (go-echarts.github.io), so viewing
+// it needs network access.
+//
+// Titles, axis captions, colors and point labels are escaped before they
+// are embedded in the page, so they are safe to take from untrusted data.
 package plot
 
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/t1sk3/go-utils/types/constraints"
 )
@@ -111,6 +119,24 @@ func pageTitle(title string) string {
 	}
 	return "eulerlib plot"
 }
+
+// go-echarts embeds the chart options in a <script> element as JSON without
+// escaping HTML, so a string containing "</script>" would end the script
+// and inject markup. guard swaps the characters that matter for Unicode
+// noncharacters (which pass through JSON encoding untouched), and unguard
+// turns those into JSON \u escapes in the rendered page, where they decode
+// back to the original characters inside the string.
+var (
+	guarder   = strings.NewReplacer("<", "\uFDD0", ">", "\uFDD1", "&", "\uFDD2")
+	unguarder = strings.NewReplacer("\uFDD0", `\u003c`, "\uFDD1", `\u003e`, "\uFDD2", `\u0026`)
+)
+
+// guard prepares s for embedding in the chart options; the rendered page
+// must go through unguard.
+func guard(s string) string { return guarder.Replace(s) }
+
+// unguard finishes what guard started on a rendered page.
+func unguard(html string) string { return unguarder.Replace(html) }
 
 // writeFile writes content to path if path is non-empty; the empty path is
 // a no-op so callers can request just the returned HTML string.

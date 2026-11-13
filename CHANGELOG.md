@@ -2,6 +2,19 @@
 
 All notable changes to eulerlib are documented here. This project follows [Semantic Versioning](https://semver.org/); because Go modules encode breaking changes in the import path, a major bump also means the module path changes (e.g. `.../v2` → `.../v3`).
 
+## Unreleased
+
+Fixes from a review of v4.0.0. No API changes.
+
+- `plot.Scatter2D`/`Scatter3D` embedded titles, axis captions, colors and point labels in the page's `<script>` without escaping, so a string containing `</script>` could inject markup. They are now escaped. The package documentation no longer calls the output self-contained: it loads ECharts from go-echarts' asset host.
+- `plot.SaveCSV2D`/`SaveCSV3D` ignored an error from closing the file.
+- `pythagoras.PrimitiveTriplets` and `TripletsWithPerimeterAtMost` overflowed their bound checks for narrow element types and yielded invalid triplets (for `int32`, from a bound of about 2^30 and 2^29 respectively).
+- `numtheory.SumOfSquares` overflowed an intermediate product, so it was wrong for results that fit (for `int64`, from n ≈ 1.66 million). It now returns 0 for n <= 0.
+- `numtheory.IsAbundant`, `IsDeficient` and `IsPerfect` were wrong when the divisor sum did not fit in the element type, and `IsAbundant` was true for negative numbers.
+- `numtheory.CRT` returned a wrapped modulus when lcm(moduli) did not fit in the element type; it now returns an empty Optional.
+- `combinatorics.Binomial` returned 0 for a `uint64` n above `MaxInt64`.
+- `numtheory.Gcd` documents its one negative result (a gcd of 2^(bits-1) in a signed type).
+
 ## v4.0.0
 
 The migration table, with code, is in [readme.md](readme.md#upgrading-from-v3).
