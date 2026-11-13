@@ -4,7 +4,21 @@ All notable changes to eulerlib are documented here. This project follows [Seman
 
 ## Unreleased
 
-Fixes from a review of v4.0.0. No API changes.
+### Added
+
+- `numtheory`: `MultiplicativeOrder`, `RecurringCycleLength`, `Jacobi`, `ModSqrt` (Tonelli–Shanks), `PrimitiveRoot`, `Iroot`, `PerfectPower`, `SumOfTwoSquares`, `DivisorCountSieve`, `SqrtContinuedFraction`, `SqrtCFTerms`, `ECFTerms`, `Convergents` and `Pell`.
+- `primes`: `Pi` and `SumUpTo` count and sum the primes up to n without enumerating them (O(n^¾) time, O(√n) memory); `Nth`, `IsPrimeBig`, `IsCircular`, `IsTruncatable`, `IsLeftTruncatable`, `IsRightTruncatable`.
+- `combinatorics`: `Catalan`, `Derangements`, `Bell`, `Stirling1`, `Stirling2`, `WaysToSum`, `BinomialMod` (Lucas), `FactorialsMod`, and the streams `KPermutations`, `CombinationsWithReplacement` and `Partitions`.
+- `digits`: `Rotations`, `Signature`, `IsPermutation`, `PowerSum`, `LookAndSay`, `ChampernowneDigit`.
+- `sequences`: `Farey`, `IsHappy`, `ChainLength`, `LinearRecurrenceMod`.
+- `figurate`: `PolygonalIndex`, `IsPolygonal`.
+- `memo`: `Memoize3`, `MemoizeWithClear`.
+- New package `paths`: `TriangleMax`, `GridMinTwoWays`, `GridMinThreeWays`, `GridMinFourWays`.
+- New package `roman`: `Format`, `Parse`.
+
+### Fixed
+
+From a review of v4.0.0.
 
 - `plot.Scatter2D`/`Scatter3D` embedded titles, axis captions, colors and point labels in the page's `<script>` without escaping, so a string containing `</script>` could inject markup. They are now escaped. The package documentation no longer calls the output self-contained: it loads ECharts from go-echarts' asset host.
 - `plot.SaveCSV2D`/`SaveCSV3D` ignored an error from closing the file.

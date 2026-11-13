@@ -1,5 +1,7 @@
-// Package sequences provides the Collatz sequence: n -> n/2 for even n,
-// n -> 3n+1 for odd n, until it reaches 1.
+// Package sequences provides integer sequences that have no package of
+// their own: the Collatz sequence (n -> n/2 for even n, n -> 3n+1 for odd
+// n, until it reaches 1), the Farey sequence, happy numbers, the length of
+// a chain before it repeats, and linear recurrences modulo m.
 package sequences
 
 import (
