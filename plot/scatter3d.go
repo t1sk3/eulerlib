@@ -32,7 +32,7 @@ func Scatter3D[E constraints.Number](points []Point3D[E], path string, opts ...O
 	data := make([]eopts.Chart3DData, len(points))
 	for i, p := range points {
 		item := eopts.Chart3DData{
-			Name:  p.Label,
+			Name:  guard(p.Label),
 			Value: []any{float64(p.X), float64(p.Y), float64(p.Z)},
 		}
 		if p.Label != "" {
@@ -49,10 +49,10 @@ func Scatter3D[E constraints.Number](points []Point3D[E], path string, opts ...O
 			Theme:     cfg.theme,
 			PageTitle: pageTitle(cfg.title),
 		}),
-		charts.WithTitleOpts(eopts.Title{Title: cfg.title}),
-		charts.WithXAxis3DOpts(eopts.XAxis3D{Type: "value", Name: cfg.xLabel}),
-		charts.WithYAxis3DOpts(eopts.YAxis3D{Type: "value", Name: cfg.yLabel}),
-		charts.WithZAxis3DOpts(eopts.ZAxis3D{Type: "value", Name: cfg.zLabel}),
+		charts.WithTitleOpts(eopts.Title{Title: guard(cfg.title)}),
+		charts.WithXAxis3DOpts(eopts.XAxis3D{Type: "value", Name: guard(cfg.xLabel)}),
+		charts.WithYAxis3DOpts(eopts.YAxis3D{Type: "value", Name: guard(cfg.yLabel)}),
+		charts.WithZAxis3DOpts(eopts.ZAxis3D{Type: "value", Name: guard(cfg.zLabel)}),
 		charts.WithGrid3DOpts(eopts.Grid3D{Show: eopts.Bool(true)}),
 		charts.WithTooltipOpts(eopts.Tooltip{Show: eopts.Bool(true), Trigger: "item"}),
 	)
@@ -65,7 +65,7 @@ func Scatter3D[E constraints.Number](points []Point3D[E], path string, opts ...O
 		charts.WithSeriesOpts(func(s *charts.SingleSeries) { s.SymbolSize = cfg.pointSize }),
 	}
 	if cfg.color != "" {
-		seriesOpts = append(seriesOpts, charts.WithItemStyleOpts(eopts.ItemStyle{Color: cfg.color}))
+		seriesOpts = append(seriesOpts, charts.WithItemStyleOpts(eopts.ItemStyle{Color: guard(cfg.color)}))
 	}
 	chart.AddSeries("points", data, seriesOpts...)
 
@@ -73,7 +73,7 @@ func Scatter3D[E constraints.Number](points []Point3D[E], path string, opts ...O
 	if err := chart.Render(&buf); err != nil {
 		return "", err
 	}
-	html := buf.String()
+	html := unguard(buf.String())
 	if err := writeFile(path, html); err != nil {
 		return "", err
 	}

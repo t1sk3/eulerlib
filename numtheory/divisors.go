@@ -11,7 +11,12 @@
 package numtheory
 
 import (
+	"cmp"
+	"math/big"
+	"math/bits"
 	"slices"
+
+	"github.com/t1sk3/eulerlib/v4/internal/mathx"
 
 	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
@@ -93,20 +98,61 @@ func SigmaSieve[E constraints.Integer](n E) []E {
 	return s
 }
 
-// IsAbundant reports whether the proper divisors of n add up to more than n.
+// IsAbundant reports whether the proper divisors of n add up to more than
+// n. It is false for n <= 0, and exact for every value of E, even when the
+// sum itself does not fit in E.
 func IsAbundant[E constraints.Integer](n E) bool {
-	return SumDivisors(n) > n
+	return n > 0 && aliquotCmp(uint64(n)) > 0
 }
 
 // IsDeficient reports whether the proper divisors of n add up to less than
-// n.
+// n. It is false for n <= 0, and exact for every value of E.
 func IsDeficient[E constraints.Integer](n E) bool {
-	return SumDivisors(n) < n
+	return n > 0 && aliquotCmp(uint64(n)) < 0
 }
 
 // IsPerfect reports whether the proper divisors of n add up to exactly n.
+// It is false for n <= 0, and exact for every value of E.
 func IsPerfect[E constraints.Integer](n E) bool {
-	return n > 0 && SumDivisors(n) == n
+	return n > 0 && aliquotCmp(uint64(n)) == 0
+}
+
+// aliquotCmp compares the sum of the proper divisors of n >= 1 with n: it
+// returns -1, 0 or +1 for a deficient, perfect or abundant n. It works in
+// uint64 and falls back to math/big if σ(n) does not fit, so it never
+// wraps.
+func aliquotCmp(n uint64) int {
+	fs := mathx.Factor(n)
+	sigma, fits := uint64(1), true
+	for i := 0; i < len(fs) && fits; {
+		p := fs[i]
+		// term = 1 + p + ... + p^e; every power is <= n, only the sum and
+		// the running product can overflow.
+		term, pk := uint64(1), uint64(1)
+		for ; i < len(fs) && fs[i] == p; i++ {
+			pk *= p
+			var carry uint64
+			term, carry = bits.Add64(term, pk, 0)
+			fits = fits && carry == 0
+		}
+		hi, lo := bits.Mul64(sigma, term)
+		fits = fits && hi == 0
+		sigma = lo
+	}
+	if fits {
+		return cmp.Compare(sigma-n, n)
+	}
+	bigSigma := big.NewInt(1)
+	for i := 0; i < len(fs); {
+		p := new(big.Int).SetUint64(fs[i])
+		term, pk := big.NewInt(1), big.NewInt(1)
+		for q := fs[i]; i < len(fs) && fs[i] == q; i++ {
+			term.Add(term, pk.Mul(pk, p))
+		}
+		bigSigma.Mul(bigSigma, term)
+	}
+	// σ(n) - n <=> n is σ(n) <=> 2n.
+	return bigSigma.Cmp(new(big.Int).Lsh(new(big.Int).SetUint64(n), 1))
 }
 
 // IsAmicable reports whether n is part of an amicable pair: m =

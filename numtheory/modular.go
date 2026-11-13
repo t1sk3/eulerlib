@@ -9,6 +9,10 @@ import (
 
 // Gcd returns the greatest common divisor of args, which is never
 // negative. Gcd() is 0, Gcd(n) is |n|, and Gcd(0, n) is |n|.
+//
+// The one exception is a gcd of 2^(bits-1), which a signed E cannot hold:
+// it arises only when every argument is 0 or E's minimum value, and comes
+// back as that (negative) minimum, like Abs.
 func Gcd[E constraints.Integer](args ...E) E {
 	var g E
 	for _, v := range args {
@@ -95,9 +99,8 @@ func ModInverse[E constraints.Signed](a, m E) optional.Optional[E] {
 // CRT solves the system x ≡ remainders[i] (mod moduli[i]) for every i
 // (the Chinese remainder theorem; the moduli need not be pairwise coprime).
 // It returns the solution x in [0, M) paired with M = lcm(moduli), or an
-// empty Optional if the system has no solution, a modulus is 0, or the
-// slices are empty or of different lengths. The result is exact as long
-// as M fits in E.
+// empty Optional if the system has no solution, a modulus is 0, the
+// slices are empty or of different lengths, or M does not fit in E.
 func CRT[E constraints.Signed](remainders, moduli []E) optional.Optional[pair.Pair[E, E]] {
 	none := optional.Empty[pair.Pair[E, E]]()
 	if len(remainders) == 0 || len(remainders) != len(moduli) {
@@ -117,11 +120,14 @@ func CRT[E constraints.Signed](remainders, moduli []E) optional.Optional[pair.Pa
 		if (r-x)%g != 0 {
 			return none
 		}
-		l := m / g * n
 		step := n / g
+		if m > mathx.MaxOf[E]()/step {
+			return none // lcm(m, n) = m*step does not fit in E
+		}
+		l := m * step
 		// x + m*k with k = (r-x)/g * p mod step solves both congruences.
 		// MulMod keeps the product exact, and x + m*k < l, so nothing
-		// overflows as long as l itself fits in E.
+		// overflows.
 		k := MulMod((r-x)/g, p, step)
 		x += m * k
 		m = l

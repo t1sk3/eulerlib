@@ -32,7 +32,7 @@ func Scatter2D[E constraints.Number](points []Point2D[E], path string, opts ...O
 	data := make([]eopts.ScatterData, len(points))
 	for i, p := range points {
 		data[i] = eopts.ScatterData{
-			Name:  p.Label,
+			Name:  guard(p.Label),
 			Value: []any{float64(p.X), float64(p.Y)},
 		}
 	}
@@ -45,9 +45,9 @@ func Scatter2D[E constraints.Number](points []Point2D[E], path string, opts ...O
 			Theme:     cfg.theme,
 			PageTitle: pageTitle(cfg.title),
 		}),
-		charts.WithTitleOpts(eopts.Title{Title: cfg.title}),
-		charts.WithXAxisOpts(eopts.XAxis{Type: "value", Name: cfg.xLabel, Scale: eopts.Bool(true)}),
-		charts.WithYAxisOpts(eopts.YAxis{Type: "value", Name: cfg.yLabel, Scale: eopts.Bool(true)}),
+		charts.WithTitleOpts(eopts.Title{Title: guard(cfg.title)}),
+		charts.WithXAxisOpts(eopts.XAxis{Type: "value", Name: guard(cfg.xLabel), Scale: eopts.Bool(true)}),
+		charts.WithYAxisOpts(eopts.YAxis{Type: "value", Name: guard(cfg.yLabel), Scale: eopts.Bool(true)}),
 		charts.WithTooltipOpts(eopts.Tooltip{Show: eopts.Bool(true), Trigger: "item"}),
 		charts.WithDataZoomOpts(
 			eopts.DataZoom{Type: "inside"},
@@ -70,7 +70,7 @@ func Scatter2D[E constraints.Number](points []Point2D[E], path string, opts ...O
 		charts.WithSeriesOpts(func(s *charts.SingleSeries) { s.SymbolSize = cfg.pointSize }),
 	}
 	if cfg.color != "" {
-		seriesOpts = append(seriesOpts, charts.WithItemStyleOpts(eopts.ItemStyle{Color: cfg.color}))
+		seriesOpts = append(seriesOpts, charts.WithItemStyleOpts(eopts.ItemStyle{Color: guard(cfg.color)}))
 	}
 	chart.AddSeries("points", data, seriesOpts...)
 
@@ -78,7 +78,7 @@ func Scatter2D[E constraints.Number](points []Point2D[E], path string, opts ...O
 	if err := chart.Render(&buf); err != nil {
 		return "", err
 	}
-	html := buf.String()
+	html := unguard(buf.String())
 	if err := writeFile(path, html); err != nil {
 		return "", err
 	}

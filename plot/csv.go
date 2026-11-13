@@ -11,12 +11,17 @@ import (
 // SaveCSV2D writes points to path as CSV — one row per point, columns
 // "x,y,label" — for batch-processing elsewhere (a spreadsheet, pandas,
 // another program). The label column is empty for points with no Label.
-func SaveCSV2D[E constraints.Number](points []Point2D[E], path string) error {
+func SaveCSV2D[E constraints.Number](points []Point2D[E], path string) (err error) {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	// A failed Close can mean the data never reached the disk.
+	defer func() {
+		if cerr := f.Close(); err == nil {
+			err = cerr
+		}
+	}()
 
 	w := csv.NewWriter(f)
 	if err := w.Write([]string{"x", "y", "label"}); err != nil {
@@ -34,12 +39,17 @@ func SaveCSV2D[E constraints.Number](points []Point2D[E], path string) error {
 // SaveCSV3D writes points to path as CSV — one row per point, columns
 // "x,y,z,label" — for batch-processing elsewhere (a spreadsheet, pandas,
 // another program). The label column is empty for points with no Label.
-func SaveCSV3D[E constraints.Number](points []Point3D[E], path string) error {
+func SaveCSV3D[E constraints.Number](points []Point3D[E], path string) (err error) {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	// A failed Close can mean the data never reached the disk.
+	defer func() {
+		if cerr := f.Close(); err == nil {
+			err = cerr
+		}
+	}()
 
 	w := csv.NewWriter(f)
 	if err := w.Write([]string{"x", "y", "z", "label"}); err != nil {
