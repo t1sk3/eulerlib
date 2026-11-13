@@ -9,10 +9,12 @@ package figurate
 
 import (
 	"math/big"
+	"math/bits"
 
 	"github.com/t1sk3/eulerlib/v4/internal/mathx"
 	"github.com/t1sk3/go-utils/stream"
 	"github.com/t1sk3/go-utils/types/constraints"
+	"github.com/t1sk3/go-utils/types/optional"
 )
 
 // NthTriangular returns n(n+1)/2.
@@ -142,4 +144,61 @@ func Polygonals[E constraints.Integer](s E) stream.Stream[E] {
 			n++
 		}
 	})
+}
+
+// polygonal returns P(s, k) for s >= 3, and whether it fits in a uint64.
+func polygonal(s, k uint64) (uint64, bool) {
+	if k == 0 {
+		return 0, true
+	}
+	// P(s, k) = k·f/2 with f = (s-2)(k-1) + 2; halve whichever is even.
+	hi, f := bits.Mul64(s-2, k-1)
+	if hi != 0 || f > ^uint64(0)-2 {
+		return 0, false
+	}
+	f += 2
+	if k%2 == 0 {
+		hi, f = bits.Mul64(k/2, f)
+	} else {
+		hi, f = bits.Mul64(k, f/2)
+	}
+	return f, hi == 0
+}
+
+// PolygonalIndex returns the k >= 0 with NthPolygonal(s, k) == n, or an
+// empty Optional if n is not an s-gonal number (or is negative):
+// PolygonalIndex(3, 10) is 4, because 10 is the fourth triangular number.
+// The index of 0 is 0 and the index of 1 is 1, for every s. It is exact
+// for every value of E, and panics if s < 3.
+func PolygonalIndex[E constraints.Integer](s, n E) optional.Optional[E] {
+	if s < 3 {
+		panic("figurate: polygonal numbers need s >= 3")
+	}
+	if n < 0 {
+		return optional.Empty[E]()
+	}
+	us, un := uint64(s), uint64(n)
+	// P(s, k) is about (s-2)k²/2, so k is within a step or two of
+	// sqrt(2n/(s-2)); try the candidates around it.
+	var est uint64
+	if hi, lo := bits.Mul64(un, 2); hi < us-2 {
+		q, _ := bits.Div64(hi, lo, us-2)
+		est = mathx.Isqrt(q)
+	} else { // 2n/(s-2) needs more than 64 bits: s = 3 and n >= 2^63
+		d := new(big.Int).SetUint64(un)
+		est = d.Sqrt(d.Lsh(d, 1)).Uint64()
+	}
+	for k := max(est, 2) - 2; k <= est+2; k++ {
+		if p, ok := polygonal(us, k); ok && p == un {
+			return optional.Of(E(k))
+		}
+	}
+	return optional.Empty[E]()
+}
+
+// IsPolygonal reports whether n = P(s, k) for some k >= 0: the general
+// form of IsTriangular, IsPentagonal and IsHexagonal (Project Euler #61).
+// It is exact for every value of E, and panics if s < 3.
+func IsPolygonal[E constraints.Integer](s, n E) bool {
+	return PolygonalIndex(s, n).IsPresent()
 }

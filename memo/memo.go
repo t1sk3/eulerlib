@@ -73,3 +73,39 @@ func MemoizeConcurrent[K comparable, V any](fn func(K) V) func(K) V {
 		return actual
 	}
 }
+
+// Memoize3 is Memoize for a three-argument function.
+func Memoize3[K1, K2, K3 comparable, V any](fn func(K1, K2, K3) V) func(K1, K2, K3) V {
+	type key struct {
+		a K1
+		b K2
+		c K3
+	}
+	cache := make(map[key]V)
+	return func(a K1, b K2, c K3) V {
+		k := key{a, b, c}
+		if v, ok := cache[k]; ok {
+			return v
+		}
+		v := fn(a, b, c)
+		cache[k] = v
+		return v
+	}
+}
+
+// MemoizeWithClear is Memoize, and also returns a function that empties
+// the cache: for freeing the memory of a large cache once a phase is over,
+// or for a function whose results depend on something that has changed.
+// Like Memoize, neither returned function is safe for concurrent use.
+func MemoizeWithClear[K comparable, V any](fn func(K) V) (memoized func(K) V, clear func()) {
+	cache := make(map[K]V)
+	memoized = func(k K) V {
+		if v, ok := cache[k]; ok {
+			return v
+		}
+		v := fn(k)
+		cache[k] = v
+		return v
+	}
+	return memoized, func() { cache = make(map[K]V) }
+}

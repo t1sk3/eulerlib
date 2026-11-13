@@ -25,16 +25,18 @@ primes.All[int]().Skip(10_000).FindFirst().Get()      // 104743 (Euler #7)
 
 | Package | Covers |
 |---|---|
-| [`primes`](primes) | Primality (deterministic Miller–Rabin), bitset `Sieve`, segmented-sieve prime streams, smallest-factor table |
-| [`numtheory`](numtheory) | Divisors and divisor sums, factorization (Pollard's rho), gcd/lcm, modular arithmetic, powers and roots, totient/Möbius, predicate builders, collectors |
-| [`combinatorics`](combinatorics) | Factorial, binomial, partitions, lazy permutations/combinations/subsets/Cartesian products |
-| [`digits`](digits) | Digit slices and sums, reversal, palindromes, pandigital checks, concatenation, base conversion |
+| [`primes`](primes) | Primality (deterministic Miller–Rabin), bitset `Sieve`, segmented-sieve prime streams, smallest-factor table, prime counting π(n) |
+| [`numtheory`](numtheory) | Divisors and divisor sums, factorization (Pollard's rho), gcd/lcm, modular arithmetic, powers and roots, totient/Möbius, multiplicative order, modular square roots, continued fractions and Pell's equation, predicate builders, collectors |
+| [`combinatorics`](combinatorics) | Factorial, binomial (also mod p), Catalan/Stirling/Bell numbers, partitions, coin-change counts, lazy permutations/combinations/subsets/Cartesian products |
+| [`digits`](digits) | Digit slices and sums, reversal, rotations, digit permutations, palindromes, pandigital checks, concatenation, base conversion |
 | [`fibonacci`](fibonacci) | Fibonacci streams and n-th terms (incl. `big.Int`, fast doubling) |
 | [`figurate`](figurate) | Triangular, square, pentagonal, hexagonal and s-gonal numbers, exact tests, streams |
-| [`sequences`](sequences) | Collatz sequence, lengths, memoised length table |
+| [`sequences`](sequences) | Collatz sequence and lengths, Farey sequence, happy numbers, digit chains, linear recurrences mod m |
+| [`paths`](paths) | Best path sums through triangles and grids |
+| [`roman`](roman) | Roman numerals |
 | [`pythagoras`](pythagoras) | Pythagorean `Triplet`, triplet streams via Euclid's formula |
 | [`geometry`](geometry) | Colinearity and quadrants on go-utils `vector.Vec2`, axial hex-grid coordinates |
-| [`memo`](memo) | Memoization wrappers, including a goroutine-safe one |
+| [`memo`](memo) | Memoization wrappers for one to three arguments, including a goroutine-safe one |
 | [`progress`](progress) | Live progress bars over slices, counts, `iter.Seq`s and streams |
 | [`stopwatch`](stopwatch) | Timing helper for brute-force runs |
 | [`plot`](plot) | Interactive HTML scatter plots (2D/3D) and CSV export |
@@ -98,6 +100,10 @@ Invalid arguments that are programmer errors (a zero modulus, a negative exponen
 | `Count(lo, hi)`, `Sum(lo, hi)` | Count / sum of primes in `[lo, hi]` |
 | `NewSieve(limit)` | Bitset sieve with `Has`, `IsPrime` (usable as a predicate), `Count`, `All`, `Stream`, `Limit` |
 | `SmallestFactorSieve(n)` | `spf[i]` = smallest prime factor of i, for `numtheory.FactorizeSPF` |
+| `Pi(n)`, `SumUpTo(n)` | Count / sum (`*big.Int`) of the primes ≤ n without enumerating them: O(n^¾) time, O(√n) memory |
+| `Nth[E](n)` | The n-th prime, `Nth(1)` = 2 (Euler #7) |
+| `IsPrimeBig(n)` | Primality of a `*big.Int` |
+| `IsCircular(n)`, `IsTruncatable(n)`, `IsLeftTruncatable`, `IsRightTruncatable` | Every rotation / truncation is prime (Euler #35, #37) |
 
 ### Number theory — `numtheory`
 
@@ -115,7 +121,14 @@ Invalid arguments that are programmer errors (a zero modulus, a negative exponen
 | `ModInverse(a, m)`, `CRT(rs, ms)` | Return `optional.Optional` |
 | `PowMod(x, y, m)`, `MulMod(a, b, m)` | Exact for any modulus (128-bit intermediate products) |
 | `Pow`, `PowBig`, `PowBigFloat`, `IsPowerOfTwo`, `IsSquare`, `Isqrt`, `FloatIsInteger` | Powers and roots; `IsSquare`/`Isqrt` are exact |
-| `Totient`, `TotientSieve`, `MobiusSieve` | φ(n), φ(0..n), μ(0..n) |
+| `Totient`, `TotientSieve`, `MobiusSieve`, `DivisorCountSieve` | φ(n), φ(0..n), μ(0..n), d(0..n) |
+| `Iroot(n, k)`, `PerfectPower(n)` | Exact integer k-th root / n as base^exp with the largest exp |
+| `SumOfTwoSquares(n)` | `(a, b)` with a² + b² = n, as `Optional` |
+| `MultiplicativeOrder(a, m)`, `RecurringCycleLength(d)` | Order of a mod m as `Optional` / cycle length of 1/d in decimal (Euler #26) |
+| `Jacobi(a, n)`, `ModSqrt(a, p)`, `PrimitiveRoot(p)` | Jacobi/Legendre symbol, Tonelli–Shanks square root as `Optional`, smallest primitive root |
+| `SqrtContinuedFraction(n)`, `SqrtCFTerms(n)`, `ECFTerms()` | Continued fraction of √n as `(a0, period)` / as an endless `iter.Seq` / of e (Euler #64, #65) |
+| `Convergents(terms)` | `iter.Seq2` of numerator and denominator (`*big.Int`) for any term sequence (Euler #57, #65) |
+| `Pell(d)` | Fundamental solution of x² − d·y² = 1 as `Optional` (Euler #66) |
 | `Abs`, `SumOfSquares`, `SquareOfSum`, `ToRadians` | Small helpers |
 | `DivisibleBy(k)`, `DivisibleByAny(ks...)`, `CoprimeTo(k)` | Predicate builders for `Filter` |
 | `Product[E]()`, `GcdOf[E]()`, `LcmOf[E]()` | Collectors for `Collect` |
@@ -125,12 +138,17 @@ Invalid arguments that are programmer errors (a zero modulus, a negative exponen
 | Function | Description |
 |---|---|
 | `Factorial`, `FactorialBig`, `Binomial` (big), `Partition`, `PartitionTable` | Counting |
+| `Catalan(n)`, `Derangements(n)`, `Bell(n)`, `Stirling1(n, k)`, `Stirling2(n, k)` | Counting sequences, as `*big.Int` |
+| `WaysToSum(target, parts)` | Coin-change count: ways to write target as a sum of the parts (Euler #31, #76, #77) |
+| `BinomialMod(n, k, p)`, `FactorialsMod(n, p)` | C(n, k) mod a prime (Lucas) / tables of i! and its inverse mod p |
 | `PermutationCount(items)` | Distinct orderings of a multiset |
 | `DigitFactorialSum(n)` | Sum of the factorials of n's digits (Euler #34) |
 | `Permutations(items)` | Stream, Heap's algorithm |
 | `LexPermutations(items)` | Stream, lexicographic, skips duplicates |
 | `NthPermutation(items, k)` | k-th lexicographic permutation without generating the others (Euler #24) |
 | `Combinations(items, k)`, `Subsets(items)`, `CartesianProduct(sets...)` | Streams; no size limit |
+| `KPermutations(items, k)`, `CombinationsWithReplacement(items, k)` | Streams of ordered k-selections / k-multisets |
+| `Partitions(n)` | Stream of the integer partitions of n, parts descending |
 
 ### Digits — `digits`
 
@@ -139,6 +157,10 @@ Invalid arguments that are programmer errors (a zero modulus, a negative exponen
 | `Of(n)`, `OfBase(n, b)`, `FromDigits(ds)` | Digit slices, most significant first |
 | `Sum(n)`, `SumString(s)`, `Count(n)`, `SumOf[E]()` | Digit sum / digit sum of a string / digit count / collector |
 | `Reverse(n)` | 1230 → 321 |
+| `Rotations(n)` | 197 → [197 971 719] (Euler #35) |
+| `Signature(n)`, `IsPermutation(a, b)` | Digit counts as a comparable map key / same digits in another order (Euler #49, #52, #62) |
+| `PowerSum(n, k)` | Sum of the k-th powers of the digits (Euler #30) |
+| `LookAndSay(s)`, `ChampernowneDigit(n)` | Next look-and-say term / n-th digit of 0.123456789101112… (Euler #40) |
 | `IsPalindrome(n)`, `IsPalindromeInBase(n, b)`, `IsPalindromeString(s)` | Palindromes (Euler #4, #36) |
 | `IsPandigital(n)`, `IsPandigitalN(n, k)` | Digits 1..9 / 1..k each exactly once |
 | `IsPandigitalInBase(n, b)`, `IsPandigitalString(s, b)` | Every digit 0..b-1 at least once |
@@ -151,10 +173,24 @@ Invalid arguments that are programmer errors (a zero modulus, a negative exponen
 |---|---|
 | `fibonacci.All[E]()`, `AllBig()`, `First`, `Nth`, `NthBig`, `IndexOfFirstWithDigits` | F(0) = 0, F(1) = 1; `NthBig` uses fast doubling |
 | `figurate.NthTriangular`, `NthSquare`, `NthPentagonal`, `NthHexagonal`, `NthPolygonal(s, n)` | n-th figurate numbers |
-| `figurate.IsTriangular`, `IsPentagonal`, `IsHexagonal` | Exact for every value of E |
+| `figurate.IsTriangular`, `IsPentagonal`, `IsHexagonal`, `IsPolygonal(s, n)` | Exact for every value of E |
+| `figurate.PolygonalIndex(s, n)` | The k with P(s, k) = n, as `Optional` |
 | `figurate.Triangulars`, `Squares`, `Pentagonals`, `Hexagonals`, `Polygonals(s)` | Streams starting at n = 1 |
 | `sequences.Collatz(n)`, `CollatzLength(n)`, `CollatzLengths(limit)`, `LongestCollatz(limit)` | Collatz (Euler #14) |
+| `sequences.Farey(n)` | Stream of the reduced fractions in [0, 1] with denominator ≤ n, ascending (Euler #71–73) |
+| `sequences.IsHappy(n)`, `ChainLength(start, next)` | Happy numbers / distinct terms before a chain repeats (Euler #74, #92) |
+| `sequences.LinearRecurrenceMod(coeffs, initial, n, m)` | n-th term of a linear recurrence mod m by matrix exponentiation |
 | `pythagoras.Triplet{A, B, C}`, `IsTriplet`, `PrimitiveTriplets(maxC)`, `TripletsWithPerimeterAtMost(p)` | Pythagorean triplets (Euler #9, #39, #75) |
+
+### Paths and numerals — `paths`, `roman`
+
+| Function | Description |
+|---|---|
+| `paths.TriangleMax(tri)` | Largest top-to-bottom path sum in a triangle (Euler #18, #67) |
+| `paths.GridMinTwoWays(g)` | Smallest path sum, top-left to bottom-right, moving right and down (Euler #81) |
+| `paths.GridMinThreeWays(g)` | Left column to right column, moving up, down and right (Euler #82) |
+| `paths.GridMinFourWays(g)` | Top-left to bottom-right, moving in all four directions, Dijkstra (Euler #83) |
+| `roman.Format(n)`, `roman.Parse(s)` | Minimal Roman numeral / value of a numeral, minimal or not (Euler #89) |
 
 ### Geometry — `geometry`
 
@@ -197,7 +233,8 @@ defer stopwatch.Start("part 2")()
 
 | Function | Description |
 |---|---|
-| `Memoize(fn)`, `Memoize2(fn)` | Cache a one- or two-argument function (not goroutine-safe) |
+| `Memoize(fn)`, `Memoize2(fn)`, `Memoize3(fn)` | Cache a one-, two- or three-argument function (not goroutine-safe) |
+| `MemoizeWithClear(fn)` | `Memoize` plus a function that empties the cache |
 | `MemoizeConcurrent(fn)` | Goroutine-safe; `fn` runs without a lock held, so recursion is fine |
 
 ```go
