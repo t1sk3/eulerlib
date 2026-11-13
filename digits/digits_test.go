@@ -2,6 +2,7 @@ package digits
 
 import (
 	"math"
+	"math/big"
 	"slices"
 	"strconv"
 	"strings"
@@ -36,6 +37,37 @@ func TestOfBase(t *testing.T) {
 	mustPanic(t, "OfBase base too big for E", func() { OfBase(int8(5), 200) })
 }
 
+func TestOfBigInt(t *testing.T) {
+	cases := map[string][]int{"0": {0}, "7": {7}, "1230": {1, 2, 3, 0}, "-45": {4, 5}}
+	for n, want := range cases {
+		bi, _ := new(big.Int).SetString(n, 10)
+		if got := OfBigInt(bi); !slices.Equal(got, want) {
+			t.Errorf("OfBigInt(%s) = %v, want %v", n, got, want)
+		}
+	}
+	big100fac, _ := new(big.Int).SetString(
+		"93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000",
+		10)
+	if got := OfBigInt(big100fac); len(got) != 158 {
+		t.Errorf("OfBigInt(100!) has %d digits, want 158", len(got))
+	}
+}
+
+func TestSumBigInt(t *testing.T) {
+	for n := -1000; n <= 100_000; n++ {
+		bi := big.NewInt(int64(n))
+		if got, want := SumBigInt(bi), SumString(strconv.Itoa(n)); got != want {
+			t.Fatalf("SumBigInt(%d) = %d, want %d", n, got, want)
+		}
+	}
+	big100fac, _ := new(big.Int).SetString(
+		"93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000",
+		10)
+	if got, want := SumBigInt(big100fac), int64(648); got != want {
+		t.Errorf("SumBigInt(100!) = %d, want %d", got, want)
+	}
+}
+
 func TestFromDigitsRoundTrip(t *testing.T) {
 	for n := 0; n <= 100_000; n++ {
 		if got := FromDigits(Of(n)); got != n {
@@ -55,6 +87,11 @@ func TestSumAndCount(t *testing.T) {
 		}
 		if got, want := Count(n), len(strings.TrimPrefix(s, "-")); got != want {
 			t.Fatalf("Count(%d) = %d, want %d", n, got, want)
+		}
+		if n >= 0 {
+			if got, want := SumDigitString(s), SumString(s); got != want {
+				t.Fatalf("SumDigitString(%s) = %d, want %d", s, got, want)
+			}
 		}
 	}
 	if got := Count(uint64(math.MaxUint64)); got != 20 {
